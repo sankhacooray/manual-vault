@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual Vault — trash the paper, keep the manual</title>
+  <meta name="description" content="Scan the QR code on a paper product manual, save the PDF straight into your own Google Drive, and let Claude index it for search.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --ink: #1c2430;
+      --muted: #64707f;
+      --line: #e2e6ec;
+      --accent: #1a73e8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--ink);
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    main { flex: 1; max-width: 760px; margin: 0 auto; padding: 56px 20px 40px; text-align: center; }
+    .logo { font-size: 46px; color: var(--accent); }
+    h1 { font-size: 30px; margin: 18px 0 8px; }
+    .tagline { color: var(--muted); font-size: 17px; margin: 0 0 30px; }
+    .launch {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--accent); color: #fff; text-decoration: none;
+      font-size: 17px; font-weight: 600;
+      padding: 15px 30px; border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(26,115,232,.35);
+    }
+    .launch:hover { filter: brightness(1.06); }
+    .note { color: var(--muted); font-size: 13px; margin-top: 14px; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px; margin-top: 52px; text-align: left;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+    }
+    .card i { color: var(--accent); font-size: 20px; }
+    .card h3 { font-size: 15px; margin: 12px 0 6px; }
+    .card p { font-size: 13.5px; color: var(--muted); margin: 0; line-height: 1.5; }
+    footer {
+      text-align: center; color: var(--muted); font-size: 13px;
+      padding: 22px; border-top: 1px solid var(--line);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <i class="fa-solid fa-box-archive logo"></i>
+    <h1>Manual Vault</h1>
+    <p class="tagline">Trash the paper. Scan the QR code, keep the PDF in your own Google Drive.</p>
+
+    <a class="launch" id="launch" href="https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec">
+      <i class="fa-solid fa-qrcode"></i> Open Manual Vault
+    </a>
+    <p class="note">Sign in with any Google account — your manuals are stored in a
+      "Manual Vault" folder in <em>your</em> Drive. The app can only touch files it created.</p>
+
+    <div class="grid">
+      <div class="card">
+        <i class="fa-solid fa-qrcode"></i>
+        <h3>Scan &amp; Save</h3>
+        <p>Point your camera at the QR code printed on the manual. The PDF opens instantly and is saved to Drive in the background.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <h3>Claude indexing</h3>
+        <p>Bring your own Anthropic API key and each manual is read, titled, categorized and tagged automatically.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <h3>Search everything</h3>
+        <p>Find the right manual by brand, model, feature or problem — the search runs over the Claude-built index.</p>
+      </div>
+      <div class="card">
+        <i class="fa-solid fa-lock"></i>
+        <h3>Scoped-down access</h3>
+        <p>Uses the narrow drive.file permission: the app cannot read, modify or delete anything else in your Google Drive.</p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <a href="https://github.com/sankhacooray/manual-vault">
+      <i class="fa-brands fa-github"></i> sankhacooray/manual-vault
+    </a>
+  </footer>
+</body>
+</html>

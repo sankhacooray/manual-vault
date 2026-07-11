@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --ink: #1c2430;
+      --muted: #64707f;
+      --line: #e2e6ec;
+      --accent: #1a73e8;
+      --accent-ink: #ffffff;
+      --danger: #c5221f;
+      --ok: #188038;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
+
+    header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 0 14px;
+    }
+    header .logo { font-size: 22px; color: var(--accent); }
+    header h1 { font-size: 19px; margin: 0; font-weight: 600; flex: 1; }
+    header button { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 8px; }
+    header button:hover { color: var(--ink); }
+
+    .scan-btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: var(--accent); color: var(--accent-ink);
+      border: none; border-radius: var(--radius);
+      font-size: 17px; font-weight: 600;
+      padding: 16px; cursor: pointer;
+      box-shadow: 0 1px 3px rgba(26,115,232,.35);
+    }
+    .scan-btn:active { transform: translateY(1px); }
+
+    .search-box {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 11px 14px; margin-top: 14px;
+    }
+    .search-box i { color: var(--muted); }
+    .search-box input {
+      border: none; outline: none; flex: 1; font-size: 15px; background: transparent; color: var(--ink);
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chip {
+      background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+      padding: 6px 13px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none;
+    }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .section-title {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .04em;
+      margin: 22px 0 10px;
+    }
+    .section-title .count { font-weight: 400; }
+
+    .doc-list { display: flex; flex-direction: column; gap: 10px; }
+    .doc {
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 13px 14px; display: flex; gap: 12px; align-items: flex-start;
+    }
+    .doc .icon { color: var(--danger); font-size: 20px; margin-top: 2px; }
+    .doc .body { flex: 1; min-width: 0; }
+    .doc .title { font-size: 15px; font-weight: 600; margin: 0 0 2px; word-break: break-word; }
+    .doc .meta { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+    .doc .summary { font-size: 13px; color: var(--muted); margin-bottom: 7px; }
+    .doc .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .doc .tag {
+      font-size: 11px; background: var(--bg); border: 1px solid var(--line);
+      border-radius: 999px; padding: 2px 8px; color: var(--muted);
+    }
+    .doc .actions { display: flex; flex-direction: column; gap: 6px; }
+    .doc .actions a, .doc .actions button {
+      background: none; border: 1px solid var(--line); border-radius: 7px;
+      color: var(--muted); font-size: 13px; padding: 6px 9px; cursor: pointer; text-decoration: none; text-align: center;
+    }
+    .doc .actions a:hover { color: var(--accent); border-color: var(--accent); }
+    .doc .actions button:hover { color: var(--danger); border-color: var(--danger); }
+
+    .empty {
+      text-align: center; color: var(--muted); padding: 40px 12px; font-size: 14px;
+    }
+    .empty i { font-size: 30px; display: block; margin-bottom: 10px; color: var(--line); }
+
+    /* scanner overlay */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(12,16,22,.94); z-index: 40;
+      display: none; flex-direction: column; align-items: center; justify-content: center; padding: 18px;
+    }
+    .overlay.open { display: flex; }
+    .overlay .close {
+      position: absolute; top: 14px; right: 14px;
+      background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 8px;
+    }
+    #qr-reader { width: min(92vw, 420px); border-radius: 12px; overflow: hidden; background: #000; }
+    .overlay .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; }
+    .overlay .alt {
+      margin-top: 14px; background: rgba(255,255,255,.12); color: #fff;
+      border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
+      padding: 10px 16px; font-size: 14px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    /* floating progress toast */
+    .toast {
+      position: fixed; right: 16px; bottom: 16px; z-index: 60;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: 0 6px 24px rgba(0,0,0,.14);
+      padding: 13px 16px; min-width: 260px; max-width: 92vw;
+      display: none; align-items: flex-start; gap: 11px; font-size: 14px;
+    }
+    .toast.show { display: flex; }
+    .toast .t-icon { margin-top: 1px; }
+    .toast .t-icon.busy { color: var(--accent); }
+    .toast .t-icon.ok { color: var(--ok); }
+    .toast .t-icon.err { color: var(--danger); }
+    .toast .t-body { flex: 1; }
+    .toast .t-title { font-weight: 600; margin-bottom: 2px; }
+    .toast .t-detail { color: var(--muted); font-size: 13px; word-break: break-word; }
+    .toast .t-detail a { color: var(--accent); }
+    .toast .t-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px; }
+
+    /* modal */
+    .modal-back {
+      position: fixed; inset: 0; background: rgba(12,16,22,.5); z-index: 50;
+      display: none; align-items: center; justify-content: center; padding: 18px;
+    }
+    .modal-back.open { display: flex; }
+    .modal {
+      background: var(--card); border-radius: 12px; padding: 22px;
+      width: min(440px, 94vw);
+    }
+    .modal h2 { margin: 0 0 6px; font-size: 17px; display: flex; align-items: center; gap: 9px; }
+    .modal p { color: var(--muted); font-size: 13.5px; margin: 6px 0 14px; }
+    .modal input {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
+      font-size: 14px; font-family: monospace;
+    }
+    .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+    .modal .row button {
+      border-radius: 8px; padding: 9px 16px; font-size: 14px; cursor: pointer; border: 1px solid var(--line); background: var(--card);
+    }
+    .modal .row button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .keystate { font-size: 13px; margin-top: 10px; }
+    .keystate.on { color: var(--ok); }
+    .keystate.off { color: var(--muted); }
+
+    .signin-note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 26px; }
+    .signin-note a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <i class="fa-solid fa-box-archive logo"></i>
+      <h1>Manual Vault</h1>
+      <button id="btn-folder" title="Open Drive folder" style="display:none"><i class="fa-brands fa-google-drive"></i></button>
+      <button id="btn-settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
+    </header>
+
+    <button class="scan-btn" id="btn-scan">
+      <i class="fa-solid fa-qrcode"></i> Scan &amp; Save
+    </button>
+
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="search" type="search" placeholder="Search manuals — brand, model, problem, keyword..." autocomplete="off">
+    </div>
+
+    <div class="chips" id="chips"></div>
+
+    <div class="section-title" id="list-title">
+      <i class="fa-solid fa-file-lines"></i> <span id="list-label">All manuals</span>
+      <span class="count" id="list-count"></span>
+    </div>
+    <div class="doc-list" id="doc-list"></div>
+    <div class="empty" id="empty" style="display:none">
+      <i class="fa-solid fa-box-open"></i>
+      <span id="empty-text">No manuals yet. Scan the QR code on a paper manual to get started.</span>
+    </div>
+
+    <div class="signin-note" id="signin-note"></div>
+  </div>
+
+  <!-- scanner overlay -->
+  <div class="overlay" id="scanner">
+    <button class="close" id="btn-scan-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+    <div id="qr-reader"></div>
+    <div class="hint">Point the camera at the QR code on your manual</div>
+    <label class="alt" id="alt-photo">
+      <i class="fa-solid fa-camera"></i> Take a photo instead
+      <input id="qr-file" type="file" accept="image/*" capture="environment" style="display:none">
+    </label>
+  </div>
+
+  <!-- progress toast -->
+  <div class="toast" id="toast">
+    <div class="t-icon busy" id="toast-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+    <div class="t-body">
+      <div class="t-title" id="toast-title"></div>
+      <div class="t-detail" id="toast-detail"></div>
+    </div>
+    <button class="t-close" id="toast-close"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+
+  <!-- settings modal -->
+  <div class="modal-back" id="settings">
+    <div class="modal">
+      <h2><i class="fa-solid fa-key"></i> Claude API key</h2>
+      <p>Used to read each saved manual and index it (title, brand, category, tags) for search.
+         The key is stored in your own Google user properties for this app only.</p>
+      <input id="api-key" type="password" placeholder="sk-ant-...">
+      <div class="keystate off" id="key-state"></div>
+      <div class="row">
+        <button id="btn-key-clear">Clear</button>
+        <button class="primary" id="btn-key-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var state = { index: { items: [] }, category: null, query: '', hasApiKey: false, folderUrl: null };
+    var scanner = null;
+
+    function run(fn) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return new Promise(function (resolve, reject) {
+        var r = google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject);
+        r[fn].apply(r, args);
+      });
+    }
+
+    // ------------------------------------------------------------ rendering
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+      });
+    }
+
+    function categories() {
+      var map = {};
+      state.index.items.forEach(function (it) {
+        var c = it.category || 'Uncategorized';
+        map[c] = (map[c] || 0) + 1;
+      });
+      return Object.keys(map).sort().map(function (c) { return { name: c, count: map[c] }; });
+    }
+
+    function score(item, q) {
+      var hay = [item.title, item.brand, item.model, item.name, item.category, item.summary, (item.tags || []).join(' ')]
+        .join(' ').toLowerCase();
+      var words = q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!words.length) return 1;
+      var s = 0;
+      for (var i = 0; i < words.length; i++) {
+        if (hay.indexOf(words[i]) === -1) return 0;
+        s += 1;
+        if ((item.title || '').toLowerCase().indexOf(words[i]) !== -1) s += 2;
+        if ((item.tags || []).join(' ').indexOf(words[i]) !== -1) s += 1;
+      }
+      return s;
+    }
+
+    function render() {
+      // chips
+      var chips = document.getElementById('chips');
+      chips.innerHTML = '';
+      categories().forEach(function (c) {
+        var el = document.createElement('div');
+        el.className = 'chip' + (state.category === c.name ? ' active' : '');
+        el.innerHTML = '<i class="fa-solid fa-tag" style="margin-right:5px;font-size:10px"></i>' + esc(c.name) + ' (' + c.count + ')';
+        el.onclick = function () {
+          state.category = state.category === c.name ? null : c.name;
+          render();
+        };
+        chips.appendChild(el);
+      });
+
+      // documents
+      var items = state.index.items.slice();
+      if (state.category) items = items.filter(function (it) { return (it.category || 'Uncategorized') === state.category; });
+      if (state.query) {
+        items = items.map(function (it) { return { it: it, s: score(it, state.query) }; })
+          .filter(function (x) { return x.s > 0; })
+          .sort(function (a, b) { return b.s - a.s; })
+          .map(function (x) { return x.it; });
+      } else {
+        items.sort(function (a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
+      }
+
+      document.getElementById('list-label').textContent =
+        state.query ? 'Search results' : (state.category ? state.category : 'All manuals');
+      document.getElementById('list-count').textContent = '(' + items.length + ')';
+
+      var list = document.getElementById('doc-list');
+      list.innerHTML = '';
+      var empty = document.getElementById('empty');
+      if (!items.length) {
+        empty.style.display = 'block';
+        document.getElementById('empty-text').textContent = state.index.items.length
+          ? 'Nothing matches. Try different keywords.'
+          : 'No manuals yet. Scan the QR code on a paper manual to get started.';
+        return;
+      }
+      empty.style.display = 'none';
+
+      items.forEach(function (it) {
+        var el = document.createElement('div');
+        el.className = 'doc';
+        var meta = [it.brand, it.model].filter(Boolean).join(' ');
+        var when = it.savedAt ? new Date(it.savedAt).toLocaleDateString() : '';
+        el.innerHTML =
+          '<div class="icon"><i class="fa-solid fa-file-pdf"></i></div>' +
+          '<div class="body">' +
+            '<div class="title">' + esc(it.title || it.name) + '</div>' +
+            '<div class="meta">' + esc([meta, it.category || '', when].filter(Boolean).join(' · ')) +
+              (it.indexed ? '' : ' · <i class="fa-solid fa-hourglass-half"></i> not indexed') + '</div>' +
+            (it.summary ? '<div class="summary">' + esc(it.summary) + '</div>' : '') +
+            '<div class="tags">' + (it.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '</div>' +
+          '<div class="actions">' +
+            '<a href="' + esc(it.webViewLink) + '" target="_blank" title="Open PDF"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>' +
+            '<button data-del="' + esc(it.id) + '" title="Remove"><i class="fa-solid fa-trash-can"></i></button>' +
+          '</div>';
+        el.querySelector('[data-del]').onclick = function () { onRemove(it); };
+        list.appendChild(el);
+      });
+    }
+
+    // -------------------------------------------------------------- toast
+
+    var toastTimer = null;
+    function toast(kind, title, detailHtml, sticky) {
+      clearTimeout(toastTimer);
+      var t = document.getElementById('toast');
+      var icon = document.getElementById('toast-icon');
+      icon.className = 't-icon ' + kind;
+      icon.innerHTML = kind === 'busy' ? '<i class="fa-solid fa-circle-notch fa-spin"></i>'
+        : kind === 'ok' ? '<i class="fa-solid fa-circle-check"></i>'
+        : '<i class="fa-solid fa-circle-exclamation"></i>';
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-detail').innerHTML = detailHtml || '';
+      t.classList.add('show');
+      if (!sticky) toastTimer = setTimeout(function () { t.classList.remove('show'); }, 6000);
+    }
+    document.getElementById('toast-close').onclick = function () {
+      document.getElementById('toast').classList.remove('show');
+    };
+
+    // ------------------------------------------------------------- scanner
+
+    function openScanner() {
+      document.getElementById('scanner').classList.add('open');
+      scanner = new Html5Qrcode('qr-reader');
+      scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        onDecoded,
+        function () { /* per-frame decode misses are normal */ }
+      ).catch(function (err) {
+        document.querySelector('#scanner .hint').textContent =
+          'Camera unavailable here — use "Take a photo instead" below.';
+      });
+    }
+
+    function closeScanner() {
+      document.getElementById('scanner').classList.remove('open');
+      if (scanner) {
+        var s = scanner; scanner = null;
+        s.stop().then(function () { s.clear(); }).catch(function () {});
+      }
+    }
+
+    function onDecoded(text) {
+      closeScanner();
+      handleScan(text);
+    }
+
+    document.getElementById('qr-file').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      var s = scanner || new Html5Qrcode('qr-reader');
+      s.scanFileV2(file, false).then(function (res) {
+        closeScanner();
+        handleScan(res.decodedText);
+      }).catch(function () {
+        document.querySelector('#scanner .hint').textContent = 'No QR code found in that photo — try again.';
+      });
+      e.target.value = '';
+    });
+
+    // ----------------------------------------------------------- scan flow
+
+    function handleScan(text) {
+      text = String(text || '').trim();
+      if (!/^https?:\/\//i.test(text)) {
+        toast('err', 'Not a link', 'The QR code contains: ' + esc(text));
+        return;
+      }
+      // open the manual right away while we save in the background
+      var opened = window.open(text, '_blank');
+      var link = '<a href="' + esc(text) + '" target="_blank">open the PDF</a>';
+      toast('busy', 'Saving to Drive...', (opened ? '' : 'Popup blocked — ' + link + ' · ') + esc(text), true);
+
+      run('saveFromUrl', text).then(function (res) {
+        if (!res.ok) {
+          var msg = res.reason === 'NOT_PDF'
+            ? 'The link is not a direct PDF. It was opened in a new tab — download it manually if needed.'
+            : 'Could not save (' + esc(res.reason) + '). ' + esc(res.detail || '');
+          toast('err', 'Not saved', msg);
+          return;
+        }
+        upsertLocal(res.item);
+        if (res.duplicate) {
+          toast('ok', 'Already in your vault', esc(res.item.title || res.item.name));
+          return;
+        }
+        if (!res.hasApiKey) {
+          toast('ok', 'Saved to Drive', 'Add a Claude API key in settings to enable smart indexing.');
+          return;
+        }
+        toast('busy', 'Indexing with Claude...', esc(res.item.name), true);
+        run('indexManual', res.item.id).then(function (ir) {
+          if (ir.ok) {
+            upsertLocal(ir.item);
+            toast('ok', 'Saved and indexed', esc(ir.item.title) + ' · ' + esc(ir.item.category));
+          } else {
+            toast('err', 'Saved, but indexing failed', esc(ir.reason) + ' ' + esc(ir.detail || ''));
+          }
+        }).catch(function (e) {
+          toast('err', 'Saved, but indexing failed', esc(e && e.message));
+        });
+      }).catch(function (e) {
+        toast('err', 'Could not save', esc(e && e.message));
+      });
+    }
+
+    function upsertLocal(item) {
+      var items = state.index.items;
+      var found = false;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id === item.id) { items[i] = item; found = true; break; }
+      }
+      if (!found) items.push(item);
+      render();
+    }
+
+    function onRemove(item) {
+      if (!confirm('Remove "' + (item.title || item.name) + '" from your vault? The PDF is moved to Drive trash.')) return;
+      toast('busy', 'Removing...', '', true);
+      run('removeManual', item.id).then(function (res) {
+        if (res.ok) {
+          state.index = res.index;
+          render();
+          toast('ok', 'Removed', '');
+        } else {
+          toast('err', 'Could not remove', esc(res.reason));
+        }
+      }).catch(function (e) { toast('err', 'Could not remove', esc(e && e.message)); });
+    }
+
+    // ------------------------------------------------------------ settings
+
+    function openSettings() {
+      document.getElementById('settings').classList.add('open');
+      var ks = document.getElementById('key-state');
+      ks.className = 'keystate ' + (state.hasApiKey ? 'on' : 'off');
+      ks.innerHTML = state.hasApiKey
+        ? '<i class="fa-solid fa-circle-check"></i> A key is saved for your account.'
+        : '<i class="fa-solid fa-circle-info"></i> No key saved yet.';
+    }
+    document.getElementById('btn-settings').onclick = openSettings;
+    document.getElementById('settings').addEventListener('click', function (e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+    document.getElementById('btn-key-save').onclick = function () {
+      var key = document.getElementById('api-key').value;
+      run('saveApiKey', key).then(function (res) {
+        if (!res.ok) { toast('err', 'Invalid key', 'Keys start with sk-ant-'); return; }
+        state.hasApiKey = res.hasApiKey;
+        document.getElementById('api-key').value = '';
+        document.getElementById('settings').classList.remove('open');
+        toast('ok', res.hasApiKey ? 'API key saved' : 'API key cleared', '');
+      }).catch(function (e) { toast('err', 'Could not save key', esc(e && e.message)); });
+    };
+    document.getElementById('btn-key-clear').onclick = function () {
+      run('saveApiKey', '').then(function () {
+        state.hasApiKey = false;
+        document.getElementById('settings').classList.remove('open');
+        toast('ok', 'API key cleared', '');
+      });
+    };
+
+    // ---------------------------------------------------------------- init
+
+    document.getElementById('btn-scan').onclick = openScanner;
+    document.getElementById('btn-scan-close').onclick = closeScanner;
+    document.getElementById('search').addEventListener('input', function () {
+      state.query = this.value.trim();
+      render();
+    });
+
+    run('getAppData').then(function (data) {
+      state.index = data.index || { items: [] };
+      state.hasApiKey = data.hasApiKey;
+      state.folderUrl = data.folderUrl;
+      if (data.folderUrl) {
+        var b = document.getElementById('btn-folder');
+        b.style.display = '';
+        b.onclick = function () { window.open(data.folderUrl, '_blank'); };
+      }
+      if (data.email) {
+        document.getElementById('signin-note').innerHTML =
+          '<i class="fa-solid fa-user"></i> Signed in as ' + esc(data.email) +
+          ' · manuals are stored in a "Manual Vault" folder in your own Google Drive.';
+      }
+      render();
+    }).catch(function (e) {
+      toast('err', 'Could not load your vault', esc(e && e.message), true);
+    });
+  </script>
+</body>
+</html>

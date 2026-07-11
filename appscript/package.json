@@ -1,0 +1,19 @@
+{
+  "name": "manual-vault-appscript",
+  "version": "1.0.0",
+  "description": "Manual Vault — QR-scan paper manuals into Google Drive with Claude-powered indexing (Google Apps Script web app)",
+  "private": true,
+  "scripts": {
+    "dev": "clasp push --watch",
+    "push": "clasp push --force",
+    "pull": "clasp pull",
+    "open": "clasp open-script",
+    "logs": "clasp tail-logs",
+    "status": "clasp show-file-status",
+    "url": "clasp list-deployments",
+    "deploy": "node deploy.js"
+  },
+  "devDependencies": {
+    "@google/clasp": "^3.3.0"
+  }
+}
