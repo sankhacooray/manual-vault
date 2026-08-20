@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#1a73e8" rx="96"/>
+  <!-- archive box, centred within the maskable safe zone -->
+  <rect x="140" y="168" width="232" height="66" rx="12" fill="#ffffff"/>
+  <rect x="158" y="234" width="196" height="150" rx="12" fill="#ffffff"/>
+  <rect x="226" y="286" width="60" height="22" rx="11" fill="#1a73e8"/>
+</svg>
