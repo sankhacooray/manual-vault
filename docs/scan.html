@@ -11,9 +11,9 @@
   <!--
     Camera page for the Apps Script web app. Apps Script serves its UI in
     iframes without camera permission, so the app opens this top-level page
-    instead. The decoded link goes back to the app with postMessage; this tab
-    then becomes the PDF tab. With no opener (or no ack), it hands off via
-    the app's ?scan= parameter.
+    instead. The decoded content goes back to the app with postMessage and
+    this tab closes. With no opener (or no ack), it hands off via the app's
+    ?scan= parameter.
   -->
   <style>
     * { box-sizing: border-box; }
@@ -32,16 +32,13 @@
 <body>
   <div class="brand"><i class="fa-solid fa-box-archive"></i> Manual Vault</div>
   <div id="qr-reader"></div>
-  <div class="hint" id="hint">Point the camera at the QR code on your manual</div>
+  <div class="hint" id="hint">Point the camera at a manual or setup QR code</div>
 
   <script>
     var APP_URL = 'https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec';
     var hint = document.getElementById('hint');
     var scanner = new Html5Qrcode('qr-reader');
     var done = false;
-    // ?mode=code: scanning a setup code (any QR content), not a manual link
-    var CODE_MODE = /[?&]mode=code\b/.test(location.search);
-    if (CODE_MODE) hint.textContent = 'Point the camera at the setup QR code';
 
     // Mirror the preview like a selfie view for front/desktop cameras, but not
     // for a phone's rear camera. Desktop webcams usually report no facingMode.
@@ -57,24 +54,15 @@
       window.addEventListener('message', function (e) {
         if (e.source === window.opener && e.data && e.data.type === 'manual-vault-ack') {
           acked = true;
-          if (e.data.next === 'close') {
-            window.close();
-            hint.textContent = 'Sent to Manual Vault — you can close this tab.';
-          } else {
-            location.replace(text);
-          }
+          window.close();
+          hint.textContent = 'Sent to Manual Vault — you can close this tab.';
         }
       });
       if (window.opener) {
         try { window.opener.postMessage({ type: 'manual-vault-scan', text: text }, '*'); } catch (e) {}
       }
       setTimeout(function () {
-        if (acked) return;
-        if (CODE_MODE) {
-          hint.textContent = 'Couldn\'t reach the Manual Vault tab. Scanned content: ' + text;
-        } else {
-          location.replace(APP_URL + '?scan=' + encodeURIComponent(text));
-        }
+        if (!acked) location.replace(APP_URL + '?scan=' + encodeURIComponent(text));
       }, 2000);
     }
 
@@ -84,10 +72,7 @@
       function (text) {
         if (done) return;
         text = String(text || '').trim();
-        if (!text || (!CODE_MODE && !/^https?:\/\//i.test(text))) {
-          hint.textContent = 'That QR code isn\'t a link: ' + text;
-          return;
-        }
+        if (!text) return;
         done = true;
         hint.textContent = 'Found it — sending to Manual Vault...';
         scanner.stop().catch(function () {}).then(function () { handOff(text); });

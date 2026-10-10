@@ -153,6 +153,64 @@ function saveCode(code) {
   return { ok: true, code: saved };
 }
 
+/**
+ * Suggests a name and note for scanned QR content that isn't a manual PDF.
+ * A pattern-based guess (Wi-Fi, Matter, HomeKit, link host) is the fallback;
+ * with an API key Claude refines it. Wi-Fi passwords are redacted before the
+ * content is sent to Claude.
+ */
+function describeCode(text) {
+  text = String(text || '').trim().substring(0, 2000);
+  var guess = guessCode_(text);
+  var apiKey = getApiKey_();
+  if (!apiKey) return { ok: true, label: guess.label, note: guess.note, source: 'guess' };
+
+  var schema = {
+    type: 'object',
+    properties: {
+      label: { type: 'string', description: 'Short name for this setup code: the device and what the code is for, e.g. "Xiaomi temperature sensor pairing", "Home Wi-Fi", "Nest Cam Matter pairing". Max 60 characters.' },
+      note: { type: 'string', description: 'One short sentence on what the code is used for. Never repeat passwords or secrets.' }
+    },
+    required: ['label', 'note'],
+    additionalProperties: false
+  };
+  var r = claudeJson_(apiKey, [{
+    type: 'text',
+    text: 'A QR code was scanned from a device label, box or manual. It is not a manual PDF; the user is saving it as a ' +
+      'setup code (pairing code, Wi-Fi credentials, app download / device-binding link, etc.).\n' +
+      'QR content: ' + redactSecrets_(text) + '\n' +
+      'Our pattern-based guess: ' + guess.label + (guess.note ? ' — ' + guess.note : '') + '\n' +
+      'Suggest a name and note. If unsure of the exact device, describe the brand and purpose.'
+  }], schema);
+  if (!r.ok) return { ok: true, label: guess.label, note: guess.note, source: 'guess' };
+  return {
+    ok: true,
+    label: String(r.meta.label || guess.label).substring(0, 120),
+    note: String(r.meta.note || guess.note).substring(0, 500),
+    source: 'claude'
+  };
+}
+
+function guessCode_(text) {
+  var m;
+  if (/^WIFI:/i.test(text)) {
+    m = text.match(/(?:^WIFI:|;)S:((?:\\.|[^;])*)/i);
+    var ssid = m ? m[1].replace(/\\(.)/g, '$1') : '';
+    var sec = (text.match(/(?:^WIFI:|;)T:([^;]*)/i) || [])[1];
+    return { label: ssid ? 'Wi-Fi: ' + ssid : 'Wi-Fi network', note: 'Wi-Fi join code' + (sec ? ' (' + sec + ')' : '') };
+  }
+  if (/^MT:/.test(text)) return { label: 'Matter pairing code', note: 'Matter smart-home setup code' };
+  if (/^X-HM:\/\//i.test(text)) return { label: 'HomeKit setup code', note: 'Apple Home pairing code' };
+  if ((m = text.match(/^https?:\/\/([^\/?#]+)/i))) {
+    return { label: m[1].replace(/^www\./, '') + ' link', note: 'Setup or pairing link' };
+  }
+  return { label: 'Setup code', note: '' };
+}
+
+function redactSecrets_(text) {
+  return /^WIFI:/i.test(text) ? text.replace(/((?:^WIFI:|;)P:)((?:\\.|[^;])*)/i, '$1<redacted>') : text;
+}
+
 function removeCode(id) {
   var folder = findFolder_();
   if (!folder) return { ok: false, reason: 'NOT_FOUND' };
@@ -379,6 +437,16 @@ function callClaude_(apiKey, pdfBytes, item, allowRetryWithoutPdf) {
       '\nExtract the catalog metadata.'
   });
 
+  var result = claudeJson_(apiKey, content, schema);
+  // Oversized / >100-page PDFs come back as 400s — retry on metadata alone.
+  if (!result.ok && result.httpError && includedPdf && allowRetryWithoutPdf) {
+    return callClaude_(apiKey, null, item, false);
+  }
+  return result;
+}
+
+/** One structured-output Claude call; returns {ok, meta} or {ok:false, reason, detail}. */
+function claudeJson_(apiKey, content, schema) {
   var payload = {
     model: CLAUDE_MODEL,
     max_tokens: 2048,
@@ -401,13 +469,9 @@ function callClaude_(apiKey, pdfBytes, item, allowRetryWithoutPdf) {
 
   var code = resp.getResponseCode();
   if (code !== 200) {
-    // Oversized / >100-page PDFs come back as 400s — retry on metadata alone.
-    if (includedPdf && allowRetryWithoutPdf) {
-      return callClaude_(apiKey, null, item, false);
-    }
     var detail = '';
     try { detail = JSON.parse(resp.getContentText()).error.message; } catch (e) { detail = String(code); }
-    return { ok: false, reason: 'CLAUDE_HTTP_' + code, detail: detail };
+    return { ok: false, httpError: true, reason: 'CLAUDE_HTTP_' + code, detail: detail };
   }
 
   var msg = JSON.parse(resp.getContentText());

@@ -46,6 +46,14 @@
     .appbar .icon-btn:hover { color: var(--ink); background: var(--bg); }
 
     .tabs { display: flex; gap: 4px; margin-left: 28px; }
+    .bar-search {
+      flex: 1; max-width: 560px; min-width: 0; margin-left: 20px;
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg); border: 1px solid transparent; border-radius: 999px; padding: 8px 16px;
+    }
+    .bar-search:focus-within { background: var(--card); border-color: var(--line); box-shadow: 0 1px 4px rgba(28,36,48,.1); }
+    .bar-search i { color: var(--muted); }
+    .bar-search input { border: none; outline: none; background: transparent; flex: 1; min-width: 0; font-size: 14.5px; color: var(--ink); }
     .tab {
       background: none; border: none; cursor: pointer;
       padding: 8px 14px; border-radius: 8px;
@@ -57,6 +65,7 @@
     @media (max-width: 640px) {
       .wrap, .appbar-inner { padding-left: 16px; padding-right: 16px; }
       .tabs { order: 10; width: 100%; margin: 4px 0 0; }
+      .bar-search { order: 11; max-width: none; width: 100%; flex-basis: 100%; margin: 6px 0 2px; }
       .tab { flex: 1; justify-content: center; }
     }
 
@@ -86,29 +95,8 @@
     .account-menu a i { width: 16px; color: var(--muted); text-align: center; }
     .account-menu .hint { font-size: 11.5px; color: var(--muted); padding: 0 16px 10px 42px; margin-top: -6px; }
 
-    /* view toolbar */
-    .toolbar { display: flex; gap: 10px; align-items: stretch; }
-    .search-box {
-      flex: 1; min-width: 0;
-      display: flex; align-items: center; gap: 10px;
-      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 10px 14px;
-    }
-    .search-box i { color: var(--muted); }
-    .search-box input {
-      border: none; outline: none; flex: 1; min-width: 0; font-size: 15px; background: transparent; color: var(--ink);
-    }
-    .add-btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: var(--accent); color: var(--accent-ink);
-      border: none; border-radius: var(--radius);
-      font-size: 15px; font-weight: 600; padding: 0 18px; cursor: pointer; white-space: nowrap;
-      box-shadow: 0 1px 3px rgba(26,115,232,.35);
-    }
-    .add-btn:hover { filter: brightness(1.06); }
-    @media (max-width: 480px) { .add-btn .label { display: none; } .add-btn { padding: 0 15px; } }
 
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
     .chips:empty { display: none; }
     .chip {
       background: var(--card); border: 1px solid var(--line); border-radius: 999px;
@@ -120,7 +108,7 @@
       display: flex; align-items: center; gap: 8px;
       font-size: 13px; font-weight: 600; color: var(--muted);
       text-transform: uppercase; letter-spacing: .04em;
-      margin: 22px 0 12px;
+      margin: 14px 0 12px;
     }
     .section-title .count { font-weight: 400; }
 
@@ -253,18 +241,10 @@
     .keystate.on { color: var(--ok); }
     .keystate.off { color: var(--muted); }
 
-    .segmented { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; margin-top: 12px; }
-    .segmented button {
-      flex: 1; border: none; background: none; padding: 8px; border-radius: 7px; cursor: pointer;
-      font-size: 13.5px; font-weight: 600; color: var(--muted);
-      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    }
-    .segmented button.active { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
-    .qr-tools { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-    .qr-tools .btn { font-size: 13px; padding: 7px 12px; }
-    .qr-preview { display: flex; justify-content: center; margin-top: 12px; }
-    .qr-preview:empty { display: none; }
-    .qr-preview .qr-svg { width: 150px; height: 150px; }
+    .confirm-qr { display: flex; justify-content: center; margin: 4px 0 2px; }
+    .confirm-qr .qr-svg { width: 132px; height: 132px; }
+    .confirm-payload { font-size: 12px; color: var(--muted); word-break: break-all; text-align: center; margin-top: 6px; }
+    .suggest { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1em; }
     .form-err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 1em; }
 
     .code-view { text-align: center; }
@@ -286,6 +266,10 @@
         <button class="tab" role="tab" data-view="manuals"><i class="fa-solid fa-book"></i> User Manuals</button>
         <button class="tab" role="tab" data-view="codes"><i class="fa-solid fa-key"></i> Setup Codes</button>
       </nav>
+      <div class="bar-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="search" type="search" autocomplete="off">
+      </div>
       <div class="spacer"></div>
       <button class="icon-btn" id="btn-folder" title="Open your Manual Vault folder in Google Drive" hidden><i class="fa-brands fa-google-drive"></i></button>
       <button class="icon-btn" id="btn-settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
@@ -307,13 +291,6 @@
   <div class="wrap">
     <!-- user manuals -->
     <section id="view-manuals" hidden>
-      <div class="toolbar">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input id="search-manuals" type="search" placeholder="Search manuals — brand, model, problem, keyword..." autocomplete="off">
-        </div>
-        <button class="add-btn" id="btn-add-manual"><i class="fa-solid fa-qrcode"></i><span class="label">Scan &amp; Save</span></button>
-      </div>
       <div class="chips" id="chips"></div>
       <div class="section-title">
         <i class="fa-solid fa-file-lines"></i> <span id="manuals-label">All manuals</span>
@@ -325,13 +302,6 @@
 
     <!-- setup codes -->
     <section id="view-codes" hidden>
-      <div class="toolbar">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass"></i>
-          <input id="search-codes" type="search" placeholder="Search setup codes — device, network, note..." autocomplete="off">
-        </div>
-        <button class="add-btn" id="btn-add-code"><i class="fa-solid fa-plus"></i><span class="label">Add code</span></button>
-      </div>
       <div class="section-title">
         <i class="fa-solid fa-key"></i> <span id="codes-label">All setup codes</span>
         <span class="count" id="codes-count"></span>
@@ -351,12 +321,7 @@
     <button class="alt" id="alt-window" hidden>
       <i class="fa-solid fa-up-right-from-square"></i> Open camera in a new tab
     </button>
-    <label class="alt">
-      <i class="fa-solid fa-camera"></i> Take a photo instead
-      <input id="qr-file" type="file" accept="image/*" capture="environment" hidden>
-    </label>
   </div>
-  <div id="qr-decode" hidden></div>
 
   <!-- progress toast -->
   <div class="toast" id="toast">
@@ -383,42 +348,25 @@
     </div>
   </div>
 
-  <!-- add setup code modal -->
-  <div class="modal-back" id="code-form">
+  <!-- confirm scanned setup code -->
+  <div class="modal-back" id="code-confirm">
     <div class="modal">
-      <h2><i class="fa-solid fa-key"></i> Add setup code</h2>
-      <div class="segmented" role="tablist">
-        <button data-kind="text" class="active"><i class="fa-solid fa-font"></i> Text code</button>
-        <button data-kind="qr"><i class="fa-solid fa-qrcode"></i> QR code</button>
-      </div>
+      <h2><i class="fa-solid fa-key"></i> Save setup code</h2>
+      <p id="cc-why"></p>
+      <div class="confirm-qr" id="cc-qr"></div>
+      <div class="confirm-payload" id="cc-payload"></div>
 
-      <label class="field" for="code-label">Name</label>
-      <input id="code-label" placeholder="e.g. Living room router Wi-Fi" maxlength="120">
+      <label class="field" for="cc-label">What is this code for?</label>
+      <input id="cc-label" maxlength="120" autocomplete="off">
+      <div class="suggest" id="cc-suggest"></div>
 
-      <div id="code-text-fields">
-        <label class="field" for="code-value">Code</label>
-        <input id="code-value" class="mono" placeholder="e.g. 1234-567-890" autocomplete="off">
-      </div>
+      <label class="field" for="cc-note">Note <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+      <textarea id="cc-note" maxlength="500"></textarea>
 
-      <div id="code-qr-fields" hidden>
-        <label class="field" for="code-qr-value">QR content</label>
-        <textarea id="code-qr-value" class="mono" placeholder="Scan or upload the QR code, or paste its content"></textarea>
-        <div class="qr-tools">
-          <button class="btn" id="btn-code-scan" type="button"><i class="fa-solid fa-camera"></i> Scan</button>
-          <label class="btn"><i class="fa-solid fa-image"></i> Upload image
-            <input id="code-qr-file" type="file" accept="image/*" hidden>
-          </label>
-        </div>
-        <div class="qr-preview" id="code-qr-preview"></div>
-      </div>
-
-      <label class="field" for="code-note">Note <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
-      <textarea id="code-note" placeholder="Where it's used, what it unlocks..." maxlength="500"></textarea>
-
-      <div class="form-err" id="code-err"></div>
+      <div class="form-err" id="cc-err"></div>
       <div class="row">
-        <button id="btn-code-cancel">Cancel</button>
-        <button class="primary" id="btn-code-save">Save</button>
+        <button id="cc-cancel">Cancel</button>
+        <button class="primary" id="cc-save">Save</button>
       </div>
     </div>
   </div>
@@ -508,6 +456,10 @@
       });
       $('view-manuals').hidden = view !== 'manuals';
       $('view-codes').hidden = view !== 'codes';
+      $('search').placeholder = view === 'codes'
+        ? 'Search setup codes — device, network, note...'
+        : 'Search manuals — brand, model, problem, keyword...';
+      $('search').value = state.queries[view];
       render();
     }
     document.querySelectorAll('.tab').forEach(function (t) {
@@ -589,7 +541,7 @@
 
       var grid = $('manuals-grid');
       grid.innerHTML = '';
-      grid.appendChild(addTile('Add manual', 'fa-plus', openScanner));
+      grid.appendChild(addTile('Add manual', 'fa-qrcode', function () { openScanner(); }));
       items.forEach(function (it) {
         var el = document.createElement('div');
         el.className = 'tile';
@@ -641,7 +593,7 @@
 
       var grid = $('codes-grid');
       grid.innerHTML = '';
-      grid.appendChild(addTile('Add setup code', 'fa-plus', openCodeForm));
+      grid.appendChild(addTile('Add setup code', 'fa-qrcode', function () { openScanner(); }));
       codes.forEach(function (c) {
         var el = document.createElement('div');
         el.className = 'tile';
@@ -661,77 +613,59 @@
       empty.hidden = codes.length > 0;
       empty.textContent = (state.index.codes || []).length
         ? 'Nothing matches. Try different keywords.'
-        : 'Keep Wi-Fi passwords, pairing codes and setup QR codes from device labels here.';
+        : 'Scan the setup QR codes on device labels — pairing, Wi-Fi, app links — to keep them here.';
     }
 
-    var codeKind = 'text';
-    function setCodeKind(kind) {
-      codeKind = kind;
-      document.querySelectorAll('#code-form .segmented button').forEach(function (b) {
-        b.classList.toggle('active', b.getAttribute('data-kind') === kind);
-      });
-      $('code-text-fields').hidden = kind !== 'text';
-      $('code-qr-fields').hidden = kind !== 'qr';
-      $('code-err').textContent = '';
-    }
-    document.querySelectorAll('#code-form .segmented button').forEach(function (b) {
-      b.onclick = function () { setCodeKind(b.getAttribute('data-kind')); };
-    });
-
-    function openCodeForm() {
-      ['code-label', 'code-value', 'code-qr-value', 'code-note'].forEach(function (id) { $(id).value = ''; });
-      $('code-qr-preview').innerHTML = '';
-      setCodeKind('text');
-      $('code-form').classList.add('open');
-      $('code-label').focus();
-    }
-
-    function setQrValue(text) {
-      $('code-qr-value').value = text;
-      updateQrPreview();
-    }
-    function updateQrPreview() {
-      var v = $('code-qr-value').value.trim();
-      $('code-qr-preview').innerHTML = v ? '<div class="qr-svg">' + qrSvg(v) + '</div>' : '';
-    }
-    $('code-qr-value').addEventListener('input', updateQrPreview);
-    $('btn-code-scan').onclick = function () {
-      openScanner({ mode: 'code', onResult: setQrValue });
-    };
-    $('code-qr-file').addEventListener('change', function (e) {
-      var file = e.target.files && e.target.files[0];
-      e.target.value = '';
-      if (!file) return;
-      new Html5Qrcode('qr-decode').scanFileV2(file, false).then(function (res) {
-        setQrValue(res.decodedText);
-        $('code-err').textContent = '';
+    // Scanned content that isn't a manual PDF: confirm as a setup code, with a
+    // name/note suggested by describeCode (pattern guess, refined by Claude).
+    var pendingCode = null;
+    function promptCode(text, why) {
+      pendingCode = { value: text, labelEdited: false, noteEdited: false, suggested: null };
+      $('cc-why').textContent = why || 'This QR code isn\'t a manual link, so it will be saved as a setup code.';
+      $('cc-qr').innerHTML = '<div class="qr-svg">' + qrSvg(text) + '</div>';
+      $('cc-payload').textContent = text.length > 160 ? text.slice(0, 160) + '…' : text;
+      $('cc-label').value = '';
+      $('cc-label').placeholder = 'e.g. Living room sensor pairing';
+      $('cc-note').value = '';
+      $('cc-err').textContent = '';
+      $('cc-suggest').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' +
+        (state.hasApiKey ? 'Claude is suggesting a name...' : 'Suggesting a name...');
+      $('code-confirm').classList.add('open');
+      $('cc-label').focus();
+      var mine = pendingCode;
+      run('describeCode', text).then(function (r) {
+        if (pendingCode !== mine) return;
+        mine.suggested = r;
+        if (!mine.labelEdited) { $('cc-label').value = r.label; $('cc-label').select(); }
+        if (!mine.noteEdited && r.note) $('cc-note').value = r.note;
+        $('cc-suggest').innerHTML = r.source === 'claude'
+          ? '<i class="fa-solid fa-wand-magic-sparkles"></i> Suggested by Claude — edit if needed'
+          : 'Suggested from the code format' + (state.hasApiKey ? '' : ' (add a Claude key in settings for smarter names)');
       }).catch(function () {
-        $('code-err').textContent = 'No QR code found in that image.';
+        if (pendingCode === mine) $('cc-suggest').textContent = '';
       });
-    });
-
-    $('btn-code-cancel').onclick = function () { $('code-form').classList.remove('open'); };
-    $('btn-code-save').onclick = function () {
-      var code = {
-        kind: codeKind,
-        label: $('code-label').value.trim(),
-        value: (codeKind === 'qr' ? $('code-qr-value') : $('code-value')).value.trim(),
-        note: $('code-note').value.trim()
-      };
-      if (!code.label) { $('code-err').textContent = 'Give it a name.'; return; }
-      if (!code.value) { $('code-err').textContent = codeKind === 'qr' ? 'Scan, upload or paste the QR code.' : 'Enter the code.'; return; }
+    }
+    $('cc-label').addEventListener('input', function () { if (pendingCode) pendingCode.labelEdited = true; });
+    $('cc-note').addEventListener('input', function () { if (pendingCode) pendingCode.noteEdited = true; });
+    $('cc-label').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('cc-save').click(); });
+    $('cc-cancel').onclick = function () { pendingCode = null; $('code-confirm').classList.remove('open'); };
+    $('cc-save').onclick = function () {
+      if (!pendingCode) return;
+      var label = $('cc-label').value.trim() || (pendingCode.suggested && pendingCode.suggested.label) || '';
+      if (!label) { $('cc-err').textContent = 'Say what this code is for.'; $('cc-label').focus(); return; }
       var btn = this;
       btn.disabled = true;
-      run('saveCode', code).then(function (res) {
+      run('saveCode', { kind: 'qr', label: label, value: pendingCode.value, note: $('cc-note').value.trim() }).then(function (res) {
         btn.disabled = false;
-        if (!res.ok) { $('code-err').textContent = 'Could not save (' + res.reason + ').'; return; }
+        if (!res.ok) { $('cc-err').textContent = 'Could not save (' + res.reason + ').'; return; }
+        pendingCode = null;
         state.index.codes = (state.index.codes || []).concat([res.code]);
-        $('code-form').classList.remove('open');
-        render();
+        $('code-confirm').classList.remove('open');
+        setView('codes');
         toast('ok', 'Setup code saved', esc(res.code.label));
       }).catch(function (e) {
         btn.disabled = false;
-        $('code-err').textContent = 'Could not save: ' + (e && e.message);
+        $('cc-err').textContent = 'Could not save: ' + (e && e.message);
       });
     };
 
@@ -787,9 +721,6 @@
     // live scanning in-frame is blocked (Chrome). The scan page on our own
     // domain runs top-level, scans, and posts the result back here.
     var SCAN_ORIGIN = 'https://manuals.sankhacooray.com';
-    // mode 'manual': the result is a manual link (the scan tab then becomes the PDF tab);
-    // mode 'code': any QR content, handed to onResult (the scan tab closes itself).
-    var scanTarget = { mode: 'manual', onResult: handleScan };
 
     function cameraBlockedInFrame() {
       var fp = document.featurePolicy || document.permissionsPolicy;
@@ -797,7 +728,7 @@
     }
 
     function openScanWindow() {
-      var w = window.open(SCAN_ORIGIN + '/scan.html' + (scanTarget.mode === 'code' ? '?mode=code' : ''), 'manual-vault-scan');
+      var w = window.open(SCAN_ORIGIN + '/scan.html', 'manual-vault-scan');
       if (!w) {
         toast('err', 'Popup blocked', 'Allow popups for this page, or use "Take a photo instead".');
         return false;
@@ -809,22 +740,15 @@
 
     window.addEventListener('message', function (e) {
       if (e.origin !== SCAN_ORIGIN || !e.data || e.data.type !== 'manual-vault-scan') return;
-      var target = scanTarget;
-      e.source.postMessage({ type: 'manual-vault-ack', next: target.mode === 'code' ? 'close' : 'open' }, e.origin);
-      if (target.mode === 'code') {
-        $('toast').classList.remove('show');
-        target.onResult(e.data.text);
-      } else {
-        // the scan tab turns into the PDF tab itself, so don't open another
-        handleScan(e.data.text, { pdfOpened: true });
-      }
+      // the scan tab closes itself once we've acknowledged
+      e.source.postMessage({ type: 'manual-vault-ack', next: 'close' }, e.origin);
+      $('toast').classList.remove('show');
+      processScan(e.data.text);
     });
 
-    function openScanner(target) {
-      scanTarget = (target && target.onResult) ? target : { mode: 'manual', onResult: handleScan };
+    function openScanner() {
       if (cameraBlockedInFrame() && openScanWindow()) return;
-      $('scan-hint').textContent = scanTarget.mode === 'code'
-        ? 'Point the camera at the setup QR code' : 'Point the camera at the QR code on your manual';
+      $('scan-hint').textContent = 'Point the camera at a manual or setup QR code';
       $('alt-window').hidden = true;
       $('scanner').classList.add('open');
       scanner = new Html5Qrcode('qr-reader');
@@ -862,43 +786,34 @@
 
     function onDecoded(text) {
       closeScanner();
-      scanTarget.onResult(text);
+      processScan(text);
     }
-
-    $('qr-file').addEventListener('change', function (e) {
-      var file = e.target.files && e.target.files[0];
-      e.target.value = '';
-      if (!file) return;
-      new Html5Qrcode('qr-decode').scanFileV2(file, false).then(function (res) {
-        closeScanner();
-        scanTarget.onResult(res.decodedText);
-      }).catch(function () {
-        $('scan-hint').textContent = 'No QR code found in that photo — try again.';
-      });
-    });
 
     // ----------------------------------------------------------- scan flow
 
-    function handleScan(text, opts) {
-      opts = opts || {};
+    // Every scan lands here: a link that leads to a PDF becomes a manual
+    // (saved to Drive, named and indexed by Claude); anything else is a setup code.
+    function processScan(text) {
       text = String(text || '').trim();
-      if (!/^https?:\/\//i.test(text)) {
-        toast('err', 'Not a link', 'The QR code contains: ' + esc(text));
+      if (!text) return;
+      var known = (state.index.codes || []).filter(function (c) { return c.value === text; })[0];
+      if (known) {
+        setView('codes');
+        openCodeDetail(known);
+        toast('ok', 'Already saved', esc(known.label));
         return;
       }
-      // open the manual right away while we save in the background
-      var opened = opts.pdfOpened || window.open(text, '_blank');
-      var link = '<a href="' + esc(text) + '" target="_blank">open the PDF</a>';
-      toast('busy', 'Saving to Drive...', (opened ? '' : 'Popup blocked — ' + link + ' · ') + esc(text), true);
+      if (!/^https?:\/\//i.test(text)) { promptCode(text); return; }
 
+      toast('busy', 'Looking for a manual PDF...', esc(text), true);
       run('saveFromUrl', text).then(function (res) {
         if (!res.ok) {
-          var msg = res.reason === 'NOT_PDF'
-            ? 'The link is not a direct PDF. It was opened in a new tab — download it manually if needed.'
-            : 'Could not save (' + esc(res.reason) + '). ' + esc(res.detail || '');
-          toast('err', 'Not saved', msg);
+          $('toast').classList.remove('show');
+          promptCode(text, 'No manual PDF was found at this link' +
+            (res.reason === 'NOT_PDF' ? '' : ' (' + res.reason + ')') + ', so it will be saved as a setup code.');
           return;
         }
+        setView('manuals');
         upsertLocal(res.item);
         if (res.duplicate) {
           toast('ok', 'Already in your vault', esc(res.item.title || res.item.name));
@@ -909,7 +824,7 @@
           loadThumbs();
           return;
         }
-        toast('busy', 'Indexing with Claude...', esc(res.item.name), true);
+        toast('busy', 'Saved — Claude is reading the manual...', esc(res.item.name), true);
         run('indexManual', res.item.id).then(function (ir) {
           loadThumbs();
           if (ir.ok) {
@@ -1043,11 +958,8 @@
 
     // ---------------------------------------------------------------- init
 
-    $('btn-add-manual').onclick = function () { openScanner(); };
-    $('btn-add-code').onclick = openCodeForm;
     $('btn-scan-close').onclick = closeScanner;
-    $('search-manuals').addEventListener('input', function () { state.queries.manuals = this.value.trim(); render(); });
-    $('search-codes').addEventListener('input', function () { state.queries.codes = this.value.trim(); render(); });
+    $('search').addEventListener('input', function () { state.queries[state.view] = this.value.trim(); render(); });
 
     var savedView = null;
     try { savedView = localStorage.getItem('mv-view'); } catch (e) {}
@@ -1072,11 +984,9 @@
       var initialScan = document.body.getAttribute('data-initial-scan');
       // a ?scan= link can come from anywhere, so confirm before saving to Drive
       if (initialScan) {
-        toast('ok', 'Save this scanned manual?',
+        toast('ok', 'Save this scanned code?',
           esc(initialScan) + '<div><button class="t-action" id="confirm-scan">Save to vault</button></div>', true);
-        $('confirm-scan').onclick = function () {
-          handleScan(initialScan, { pdfOpened: true });
-        };
+        $('confirm-scan').onclick = function () { processScan(initialScan); };
       }
     }).catch(function (e) {
       toast('err', 'Could not load your vault', esc(e && e.message), true);
