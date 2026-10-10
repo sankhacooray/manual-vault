@@ -52,19 +52,31 @@
       background: var(--bg); color: var(--ink);
       display: flex; flex-direction: column; min-height: 100vh;
     }
-    main { flex: 1; max-width: 1040px; margin: 0 auto; padding: 40px 16px 28px; text-align: center; }
-    .logo { font-size: 46px; color: var(--accent); }
-    h1 { font-size: 30px; margin: 18px 0 8px; }
+    .appbar {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--card); border-bottom: 1px solid var(--line);
+    }
+    .appbar-inner {
+      max-width: 1040px; margin: 0 auto; padding: 10px 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .brand {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none;
+    }
+    .brand i { color: var(--accent); font-size: 22px; }
+    main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 64px 16px 28px; text-align: center; }
+    h1 { font-size: 34px; margin: 0 0 10px; }
     .tagline { color: var(--muted); font-size: 17px; margin: 0 0 30px; }
     .launch {
       display: inline-flex; align-items: center; gap: 10px;
       background: var(--accent); color: #fff; text-decoration: none;
-      font-size: 17px; font-weight: 600;
-      padding: 15px 30px; border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(26,115,232,.35);
+      font-size: 15px; font-weight: 600;
+      padding: 9px 18px; border-radius: 8px; white-space: nowrap;
+      box-shadow: 0 1px 4px rgba(26,115,232,.3);
     }
     .launch:hover { filter: brightness(1.06); }
-    .note { color: var(--muted); font-size: 13px; margin-top: 14px; }
+    .note { color: var(--muted); font-size: 13px; margin: 0; }
     .grid {
       display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 14px; margin-top: 40px; text-align: left;
@@ -85,14 +97,17 @@
   </style>
 </head>
 <body>
+  <header class="appbar">
+    <div class="appbar-inner">
+      <a class="brand" href="./"><i class="fa-solid fa-box-archive"></i> Manual Vault</a>
+      <a class="launch" id="launch" href="https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec">
+        <i class="fa-brands fa-google"></i> Sign in
+      </a>
+    </div>
+  </header>
   <main>
-    <i class="fa-solid fa-box-archive logo"></i>
     <h1>Manual Vault</h1>
     <p class="tagline">Trash the paper. Scan the QR code, keep the PDF in your own Google Drive.</p>
-
-    <a class="launch" id="launch" href="https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec">
-      <i class="fa-solid fa-qrcode"></i> Open Manual Vault
-    </a>
     <p class="note">Sign in with any Google account — your manuals are stored in a
       "Manual Vault" folder in <em>your</em> Drive. The app can only touch files it created.</p>
 
