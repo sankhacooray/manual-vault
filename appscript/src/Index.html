@@ -25,16 +25,46 @@
       background: var(--bg);
       color: var(--ink);
     }
-    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 16px 80px; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
 
-    header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 6px 0 14px;
+    .appbar {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--card); border-bottom: 1px solid var(--line);
     }
-    header .logo { font-size: 22px; color: var(--accent); }
-    header h1 { font-size: 19px; margin: 0; font-weight: 600; flex: 1; }
-    header button { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 8px; }
-    header button:hover { color: var(--ink); }
+    .appbar-inner {
+      max-width: 860px; margin: 0 auto; padding: 10px 16px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .appbar .logo { font-size: 22px; color: var(--accent); margin-right: 4px; }
+    .appbar h1 { font-size: 17px; margin: 0; font-weight: 700; flex: 1; }
+    .appbar .icon-btn { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .appbar .icon-btn:hover { color: var(--ink); background: var(--bg); }
+
+    .account { position: relative; margin-left: 4px; }
+    .avatar-btn {
+      width: 36px; height: 36px; border-radius: 50%; padding: 0; cursor: pointer;
+      border: 2px solid transparent; background: var(--accent); color: #fff;
+      font-weight: 600; font-size: 15px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .avatar-btn:hover, .avatar-btn[aria-expanded="true"] { border-color: var(--line); box-shadow: 0 0 0 2px var(--line); }
+    .avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .account-menu {
+      display: none; position: absolute; right: 0; top: calc(100% + 8px);
+      min-width: 250px; background: var(--card); border: 1px solid var(--line);
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(28,36,48,.14); overflow: hidden;
+    }
+    .account-menu.open { display: block; }
+    .account-menu .who { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .account-menu .who-name { font-weight: 600; font-size: 14px; }
+    .account-menu .who-email { color: var(--muted); font-size: 13px; margin-top: 2px; word-break: break-all; }
+    .account-menu a {
+      display: flex; align-items: center; gap: 10px; padding: 11px 16px;
+      color: var(--ink); text-decoration: none; font-size: 14px;
+    }
+    .account-menu a:hover { background: var(--bg); }
+    .account-menu a i { width: 16px; color: var(--muted); text-align: center; }
+    .account-menu .hint { font-size: 11.5px; color: var(--muted); padding: 0 16px 10px 42px; margin-top: -6px; }
 
     .scan-btn {
       width: 100%;
@@ -168,13 +198,28 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
+  <header class="appbar">
+    <div class="appbar-inner">
       <i class="fa-solid fa-box-archive logo"></i>
       <h1>Manual Vault</h1>
-      <button id="btn-folder" title="Open Drive folder" style="display:none"><i class="fa-brands fa-google-drive"></i></button>
-      <button id="btn-settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
-    </header>
+      <button class="icon-btn" id="btn-folder" title="Open Drive folder" style="display:none"><i class="fa-brands fa-google-drive"></i></button>
+      <button class="icon-btn" id="btn-settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
+      <div class="account" id="account" style="display:none">
+        <button class="avatar-btn" id="btn-avatar" title="Account" aria-haspopup="true" aria-expanded="false"></button>
+        <div class="account-menu" id="account-menu" role="menu">
+          <div class="who">
+            <div class="who-name" id="who-name"></div>
+            <div class="who-email" id="who-email"></div>
+          </div>
+          <a id="switch-account" target="_top" role="menuitem"><i class="fa-solid fa-user-group"></i> Switch account</a>
+          <a id="sign-out" target="_top" role="menuitem"><i class="fa-solid fa-right-from-bracket"></i> Sign out</a>
+          <div class="hint">Signs you out of Google in this browser</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="wrap">
 
     <button class="scan-btn" id="btn-scan">
       <i class="fa-solid fa-qrcode"></i> Scan &amp; Save
@@ -512,6 +557,51 @@
       });
     };
 
+    // ----------------------------------------------------------------- account
+
+    var LANDING_URL = 'https://manuals.sankhacooray.com';
+    var APP_URL = 'https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec';
+
+    function showAccount(email, profile) {
+      var name = (profile && profile.name) || email.split('@')[0];
+      var btn = document.getElementById('btn-avatar');
+      var initial = function () { btn.textContent = name.charAt(0).toUpperCase(); };
+      if (profile && profile.picture) {
+        var img = document.createElement('img');
+        img.alt = '';
+        img.referrerPolicy = 'no-referrer';
+        img.onerror = initial;
+        img.src = profile.picture;
+        btn.appendChild(img);
+      } else {
+        initial();
+      }
+      btn.title = name + ' (' + email + ')';
+      document.getElementById('who-name').textContent = name;
+      document.getElementById('who-email').textContent = email;
+      document.getElementById('switch-account').href =
+        'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(APP_URL);
+      // Google's Logout ignores off-Google continue URLs; the appengine hop forwards to the landing page.
+      document.getElementById('sign-out').href =
+        'https://accounts.google.com/Logout?continue=' + encodeURIComponent(
+          'https://appengine.google.com/_ah/logout?continue=' + LANDING_URL);
+      document.getElementById('account').style.display = '';
+    }
+
+    (function () {
+      var btn = document.getElementById('btn-avatar');
+      var menu = document.getElementById('account-menu');
+      function setOpen(open) {
+        menu.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      }
+      btn.onclick = function (e) { e.stopPropagation(); setOpen(!menu.classList.contains('open')); };
+      document.addEventListener('click', function (e) {
+        if (!menu.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+    })();
+
     // ---------------------------------------------------------------- init
 
     document.getElementById('btn-scan').onclick = openScanner;
@@ -531,9 +621,9 @@
         b.onclick = function () { window.open(data.folderUrl, '_blank'); };
       }
       if (data.email) {
-        document.getElementById('signin-note').innerHTML =
-          '<i class="fa-solid fa-user"></i> Signed in as ' + esc(data.email) +
-          ' · manuals are stored in a "Manual Vault" folder in your own Google Drive.';
+        showAccount(data.email, data.profile);
+        document.getElementById('signin-note').textContent =
+          'Your manuals are stored in a "Manual Vault" folder in your own Google Drive.';
       }
       render();
     }).catch(function (e) {

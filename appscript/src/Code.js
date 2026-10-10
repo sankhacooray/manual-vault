@@ -37,10 +37,35 @@ function getAppData() {
   var folder = findFolder_();
   return {
     email: Session.getActiveUser().getEmail(),
+    profile: getProfile_(),
     hasApiKey: !!getApiKey_(),
     folderUrl: folder ? 'https://drive.google.com/drive/folders/' + folder.id : null,
     index: readIndex_(folder)
   };
+}
+
+/**
+ * Name + photo for the app-bar avatar, from Google's userinfo endpoint
+ * (userinfo.profile scope). Cached per user for 6h; null on any failure so
+ * the client falls back to an initial.
+ */
+function getProfile_() {
+  var cache = CacheService.getUserCache();
+  var hit = cache.get('profile');
+  if (hit) return JSON.parse(hit);
+  try {
+    var res = UrlFetchApp.fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) return null;
+    var u = JSON.parse(res.getContentText());
+    var profile = { name: u.name || '', picture: u.picture || '' };
+    cache.put('profile', JSON.stringify(profile), 6 * 60 * 60);
+    return profile;
+  } catch (e) {
+    return null;
+  }
 }
 
 function getIndex() {
