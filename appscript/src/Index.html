@@ -244,6 +244,12 @@
     .confirm-qr { display: flex; justify-content: center; margin: 4px 0 2px; }
     .confirm-qr .qr-svg { width: 132px; height: 132px; }
     .confirm-payload { font-size: 12px; color: var(--muted); word-break: break-all; text-align: center; margin-top: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap .spin { position: absolute; right: 12px; top: 50%; margin-top: -7px; color: var(--accent); display: none; }
+    .input-wrap.loading .spin { display: block; }
+    .input-wrap.loading input { padding-right: 36px; }
+    .modal input:disabled, .modal textarea:disabled { background: var(--bg); color: var(--muted); cursor: progress; }
+    .modal .row button:disabled { opacity: .55; cursor: progress; }
     .suggest { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1em; }
     .form-err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 1em; }
 
@@ -357,7 +363,10 @@
       <div class="confirm-payload" id="cc-payload"></div>
 
       <label class="field" for="cc-label">What is this code for?</label>
-      <input id="cc-label" maxlength="120" autocomplete="off">
+      <div class="input-wrap" id="cc-label-wrap">
+        <input id="cc-label" maxlength="120" autocomplete="off">
+        <i class="fa-solid fa-circle-notch fa-spin spin"></i>
+      </div>
       <div class="suggest" id="cc-suggest"></div>
 
       <label class="field" for="cc-note">Note <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
@@ -619,38 +628,51 @@
     // Scanned content that isn't a manual PDF: confirm as a setup code, with a
     // name/note suggested by describeCode (pattern guess, refined by Claude).
     var pendingCode = null;
+
+    // fields stay locked while the name is being suggested, so nothing typed gets overwritten
+    function setCodeLoading(loading) {
+      $('cc-label-wrap').classList.toggle('loading', loading);
+      $('cc-label').disabled = loading;
+      $('cc-note').disabled = loading;
+      $('cc-save').disabled = loading;
+      $('cc-label').placeholder = loading ? 'Identifying what this code is for...' : 'e.g. Living room sensor pairing';
+      $('cc-note').placeholder = loading ? '' : 'Where it\'s used, what it unlocks...';
+    }
+
     function promptCode(text, why) {
-      pendingCode = { value: text, labelEdited: false, noteEdited: false, suggested: null };
+      pendingCode = { value: text, suggested: null };
       $('cc-why').textContent = why || 'This QR code isn\'t a manual link, so it will be saved as a setup code.';
       $('cc-qr').innerHTML = '<div class="qr-svg">' + qrSvg(text) + '</div>';
       $('cc-payload').textContent = text.length > 160 ? text.slice(0, 160) + '…' : text;
       $('cc-label').value = '';
-      $('cc-label').placeholder = 'e.g. Living room sensor pairing';
       $('cc-note').value = '';
       $('cc-err').textContent = '';
-      $('cc-suggest').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> ' +
-        (state.hasApiKey ? 'Claude is suggesting a name...' : 'Suggesting a name...');
+      $('cc-suggest').textContent = state.hasApiKey ? 'Claude is reading the code...' : 'Reading the code...';
+      setCodeLoading(true);
       $('code-confirm').classList.add('open');
-      $('cc-label').focus();
       var mine = pendingCode;
-      run('describeCode', text).then(function (r) {
+      function done(r) {
         if (pendingCode !== mine) return;
         mine.suggested = r;
-        if (!mine.labelEdited) { $('cc-label').value = r.label; $('cc-label').select(); }
-        if (!mine.noteEdited && r.note) $('cc-note').value = r.note;
-        $('cc-suggest').innerHTML = r.source === 'claude'
-          ? '<i class="fa-solid fa-wand-magic-sparkles"></i> Suggested by Claude — edit if needed'
-          : 'Suggested from the code format' + (state.hasApiKey ? '' : ' (add a Claude key in settings for smarter names)');
-      }).catch(function () {
-        if (pendingCode === mine) $('cc-suggest').textContent = '';
-      });
+        setCodeLoading(false);
+        if (r) {
+          $('cc-label').value = r.label || '';
+          $('cc-note').value = r.note || '';
+          $('cc-suggest').innerHTML = r.source === 'claude'
+            ? '<i class="fa-solid fa-wand-magic-sparkles"></i> Suggested by Claude — edit if needed'
+            : 'Suggested from the code format' + (state.hasApiKey ? '' : ' (add a Claude key in settings for smarter names)');
+        } else {
+          $('cc-suggest').textContent = 'Couldn\'t suggest a name — type one in.';
+        }
+        $('cc-label').focus();
+        $('cc-label').select();
+      }
+      run('describeCode', text).then(done).catch(function () { done(null); });
     }
-    $('cc-label').addEventListener('input', function () { if (pendingCode) pendingCode.labelEdited = true; });
-    $('cc-note').addEventListener('input', function () { if (pendingCode) pendingCode.noteEdited = true; });
     $('cc-label').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('cc-save').click(); });
-    $('cc-cancel').onclick = function () { pendingCode = null; $('code-confirm').classList.remove('open'); };
+    $('cc-cancel').onclick = function () { pendingCode = null; setCodeLoading(false); $('code-confirm').classList.remove('open'); };
     $('cc-save').onclick = function () {
-      if (!pendingCode) return;
+      if (!pendingCode || this.disabled) return;
       var label = $('cc-label').value.trim() || (pendingCode.suggested && pendingCode.suggested.label) || '';
       if (!label) { $('cc-err').textContent = 'Say what this code is for.'; $('cc-label').focus(); return; }
       var btn = this;
