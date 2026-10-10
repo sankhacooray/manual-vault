@@ -39,20 +39,42 @@
     var hint = document.getElementById('hint');
     var scanner = new Html5Qrcode('qr-reader');
     var done = false;
+    // ?mode=code: scanning a setup code (any QR content), not a manual link
+    var CODE_MODE = /[?&]mode=code\b/.test(location.search);
+    if (CODE_MODE) hint.textContent = 'Point the camera at the setup QR code';
+
+    // Mirror the preview like a selfie view for front/desktop cameras, but not
+    // for a phone's rear camera. Desktop webcams usually report no facingMode.
+    function mirrorPreview(readerId) {
+      var video = document.querySelector('#' + readerId + ' video');
+      var track = video && video.srcObject && video.srcObject.getVideoTracks()[0];
+      var facing = track && track.getSettings ? track.getSettings().facingMode : '';
+      if (video) video.style.transform = facing === 'environment' ? '' : 'scaleX(-1)';
+    }
 
     function handOff(text) {
       var acked = false;
       window.addEventListener('message', function (e) {
         if (e.source === window.opener && e.data && e.data.type === 'manual-vault-ack') {
           acked = true;
-          location.replace(text);
+          if (e.data.next === 'close') {
+            window.close();
+            hint.textContent = 'Sent to Manual Vault — you can close this tab.';
+          } else {
+            location.replace(text);
+          }
         }
       });
       if (window.opener) {
         try { window.opener.postMessage({ type: 'manual-vault-scan', text: text }, '*'); } catch (e) {}
       }
       setTimeout(function () {
-        if (!acked) location.replace(APP_URL + '?scan=' + encodeURIComponent(text));
+        if (acked) return;
+        if (CODE_MODE) {
+          hint.textContent = 'Couldn\'t reach the Manual Vault tab. Scanned content: ' + text;
+        } else {
+          location.replace(APP_URL + '?scan=' + encodeURIComponent(text));
+        }
       }, 2000);
     }
 
@@ -62,7 +84,7 @@
       function (text) {
         if (done) return;
         text = String(text || '').trim();
-        if (!/^https?:\/\//i.test(text)) {
+        if (!text || (!CODE_MODE && !/^https?:\/\//i.test(text))) {
           hint.textContent = 'That QR code isn\'t a link: ' + text;
           return;
         }
@@ -71,7 +93,9 @@
         scanner.stop().catch(function () {}).then(function () { handOff(text); });
       },
       function () { /* per-frame decode misses are normal */ }
-    ).catch(function () {
+    ).then(function () {
+      mirrorPreview('qr-reader');
+    }).catch(function () {
       hint.innerHTML = 'Camera blocked. Allow camera access for this site in the address bar, then ' +
         '<a href="">reload</a>.';
     });

@@ -34,9 +34,9 @@ function doGet(e) {
 
 // ------------------------------------------------------------- client API
 
-/** Initial payload for the home view. */
+/** Initial payload for the home view. Creates the vault folder on first visit so the Drive button always works. */
 function getAppData() {
-  var folder = findFolder_();
+  var folder = ensureFolder_();
   return {
     email: Session.getActiveUser().getEmail(),
     profile: getProfile_(),
@@ -72,6 +72,94 @@ function getProfile_() {
 
 function getIndex() {
   return readIndex_(findFolder_());
+}
+
+/**
+ * First-page thumbnails for the manuals grid, as {fileId: dataUri}. Drive's
+ * thumbnailLink is private to the user, so it's fetched here with their token
+ * and inlined; each one is cached for 6h. A file without a thumbnail yet
+ * (Drive makes them asynchronously) is simply missing from the result.
+ */
+function getThumbnails() {
+  var folder = findFolder_();
+  if (!folder) return {};
+  var res = Drive.Files.list({
+    q: "'" + folder.id + "' in parents and mimeType = 'application/pdf' and trashed = false",
+    fields: 'files(id,thumbnailLink)',
+    pageSize: 1000
+  });
+  var cache = CacheService.getUserCache();
+  var out = {};
+  var todo = [];
+  (res.files || []).forEach(function (f) {
+    if (!f.thumbnailLink) return;
+    var hit = cache.get('thumb:' + f.id);
+    if (hit) out[f.id] = hit; else todo.push(f);
+  });
+  if (!todo.length) return out;
+
+  var token = ScriptApp.getOAuthToken();
+  var resps = UrlFetchApp.fetchAll(todo.map(function (f) {
+    return {
+      url: f.thumbnailLink.replace(/=s\d+$/, '=s400'),
+      headers: { Authorization: 'Bearer ' + token },
+      muteHttpExceptions: true
+    };
+  }));
+  resps.forEach(function (r, i) {
+    if (r.getResponseCode() !== 200) return;
+    var blob = r.getBlob();
+    var uri = 'data:' + (blob.getContentType() || 'image/png') + ';base64,' + Utilities.base64Encode(blob.getBytes());
+    out[todo[i].id] = uri;
+    if (uri.length < 100000) cache.put('thumb:' + todo[i].id, uri, 6 * 60 * 60);
+  });
+  return out;
+}
+
+// ------------------------------------------------------------ setup codes
+
+/**
+ * Creates or updates a setup code (Wi-Fi password, pairing code, HomeKit /
+ * Matter QR, ...). kind is 'text' or 'qr'; for 'qr' the value is the QR
+ * payload, re-rendered as a QR code on the client.
+ */
+function saveCode(code) {
+  code = code || {};
+  var label = String(code.label || '').trim().substring(0, 120);
+  var value = String(code.value || '').trim();
+  if (!label || !value) return { ok: false, reason: 'MISSING_FIELDS' };
+  if (value.length > 2000) return { ok: false, reason: 'TOO_LONG' };
+
+  var folder = ensureFolder_();
+  var saved = null;
+  withIndex_(folder, function (index) {
+    var codes = index.codes = index.codes || [];
+    var now = new Date().toISOString();
+    var existing = null;
+    for (var i = 0; i < codes.length; i++) {
+      if (code.id && codes[i].id === code.id) { existing = i; break; }
+    }
+    saved = {
+      id: existing !== null ? codes[existing].id : Utilities.getUuid(),
+      kind: code.kind === 'qr' ? 'qr' : 'text',
+      label: label,
+      value: value,
+      note: String(code.note || '').trim().substring(0, 500),
+      createdAt: existing !== null ? codes[existing].createdAt : now,
+      updatedAt: now
+    };
+    if (existing !== null) codes[existing] = saved; else codes.push(saved);
+  });
+  return { ok: true, code: saved };
+}
+
+function removeCode(id) {
+  var folder = findFolder_();
+  if (!folder) return { ok: false, reason: 'NOT_FOUND' };
+  withIndex_(folder, function (index) {
+    index.codes = (index.codes || []).filter(function (c) { return c.id !== id; });
+  });
+  return { ok: true };
 }
 
 /** Stores the user's Anthropic API key in their own user properties. */
@@ -237,9 +325,9 @@ function removeManual(fileId) {
   } catch (e) {
     // already gone from Drive — still remove from index
   }
-  var index = readIndex_(folder);
-  index.items = index.items.filter(function (it) { return it.id !== fileId; });
-  writeIndex_(folder, index);
+  var index = withIndex_(folder, function (idx) {
+    idx.items = idx.items.filter(function (it) { return it.id !== fileId; });
+  });
   return { ok: true, index: index };
 }
 
@@ -379,7 +467,7 @@ function driveDownload_(fileId) {
 }
 
 function emptyIndex_() {
-  return { version: 0, updatedAt: null, items: [] };
+  return { version: 0, updatedAt: null, items: [], codes: [] };
 }
 
 function readIndex_(folder) {
@@ -411,20 +499,27 @@ function writeIndex_(folder, index) {
   return index;
 }
 
-function upsertIndexItem_(folder, item) {
+/** Read-modify-write of the index under the user lock; returns the written index. */
+function withIndex_(folder, mutate) {
   var lock = LockService.getUserLock();
   lock.waitLock(20000);
   try {
     var index = readIndex_(folder);
+    mutate(index);
+    return writeIndex_(folder, index);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function upsertIndexItem_(folder, item) {
+  withIndex_(folder, function (index) {
     var replaced = false;
     for (var i = 0; i < index.items.length; i++) {
       if (index.items[i].id === item.id) { index.items[i] = item; replaced = true; break; }
     }
     if (!replaced) index.items.push(item);
-    writeIndex_(folder, index);
-  } finally {
-    lock.releaseLock();
-  }
+  });
 }
 
 // -------------------------------------------------------------- misc utils

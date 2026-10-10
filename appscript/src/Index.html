@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -13,6 +14,7 @@
       --muted: #64707f;
       --line: #e2e6ec;
       --accent: #1a73e8;
+      --accent-soft: #e8f0fe;
       --accent-ink: #ffffff;
       --danger: #c5221f;
       --ok: #188038;
@@ -25,20 +27,38 @@
       background: var(--bg);
       color: var(--ink);
     }
-    .wrap { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
+    button { font-family: inherit; }
+    .wrap { padding: 20px 24px 80px; }
 
+    /* app bar */
     .appbar {
       position: sticky; top: 0; z-index: 20;
       background: var(--card); border-bottom: 1px solid var(--line);
     }
     .appbar-inner {
-      max-width: 860px; margin: 0 auto; padding: 10px 16px;
-      display: flex; align-items: center; gap: 6px;
+      padding: 8px 24px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     }
     .appbar .logo { font-size: 22px; color: var(--accent); margin-right: 4px; }
-    .appbar h1 { font-size: 17px; margin: 0; font-weight: 700; flex: 1; }
-    .appbar .icon-btn { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 8px; border-radius: 50%; }
+    .appbar h1 { font-size: 17px; margin: 0; font-weight: 700; white-space: nowrap; }
+    .appbar .spacer { flex: 1; }
+    .appbar .icon-btn { background: none; border: none; color: var(--muted); font-size: 17px; cursor: pointer; padding: 8px; border-radius: 50%; width: 36px; height: 36px; }
     .appbar .icon-btn:hover { color: var(--ink); background: var(--bg); }
+
+    .tabs { display: flex; gap: 4px; margin-left: 28px; }
+    .tab {
+      background: none; border: none; cursor: pointer;
+      padding: 8px 14px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .tab:hover { background: var(--bg); color: var(--ink); }
+    .tab.active { background: var(--accent-soft); color: var(--accent); }
+    @media (max-width: 640px) {
+      .wrap, .appbar-inner { padding-left: 16px; padding-right: 16px; }
+      .tabs { order: 10; width: 100%; margin: 4px 0 0; }
+      .tab { flex: 1; justify-content: center; }
+    }
 
     .account { position: relative; margin-left: 4px; }
     .avatar-btn {
@@ -66,28 +86,30 @@
     .account-menu a i { width: 16px; color: var(--muted); text-align: center; }
     .account-menu .hint { font-size: 11.5px; color: var(--muted); padding: 0 16px 10px 42px; margin-top: -6px; }
 
-    .scan-btn {
-      width: 100%;
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      background: var(--accent); color: var(--accent-ink);
-      border: none; border-radius: var(--radius);
-      font-size: 17px; font-weight: 600;
-      padding: 16px; cursor: pointer;
-      box-shadow: 0 1px 3px rgba(26,115,232,.35);
-    }
-    .scan-btn:active { transform: translateY(1px); }
-
+    /* view toolbar */
+    .toolbar { display: flex; gap: 10px; align-items: stretch; }
     .search-box {
+      flex: 1; min-width: 0;
       display: flex; align-items: center; gap: 10px;
       background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 11px 14px; margin-top: 14px;
+      padding: 10px 14px;
     }
     .search-box i { color: var(--muted); }
     .search-box input {
-      border: none; outline: none; flex: 1; font-size: 15px; background: transparent; color: var(--ink);
+      border: none; outline: none; flex: 1; min-width: 0; font-size: 15px; background: transparent; color: var(--ink);
     }
+    .add-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: var(--accent-ink);
+      border: none; border-radius: var(--radius);
+      font-size: 15px; font-weight: 600; padding: 0 18px; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 1px 3px rgba(26,115,232,.35);
+    }
+    .add-btn:hover { filter: brightness(1.06); }
+    @media (max-width: 480px) { .add-btn .label { display: none; } .add-btn { padding: 0 15px; } }
 
     .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .chips:empty { display: none; }
     .chip {
       background: var(--card); border: 1px solid var(--line); border-radius: 999px;
       padding: 6px 13px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none;
@@ -98,41 +120,66 @@
       display: flex; align-items: center; gap: 8px;
       font-size: 13px; font-weight: 600; color: var(--muted);
       text-transform: uppercase; letter-spacing: .04em;
-      margin: 22px 0 10px;
+      margin: 22px 0 12px;
     }
     .section-title .count { font-weight: 400; }
 
-    .doc-list { display: flex; flex-direction: column; gap: 10px; }
-    .doc {
-      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 13px 14px; display: flex; gap: 12px; align-items: flex-start;
+    /* card grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+    .tile {
+      position: relative; display: flex; flex-direction: column;
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+      overflow: hidden; cursor: pointer; text-align: left; padding: 0; color: inherit; font: inherit;
     }
-    .doc .icon { color: var(--danger); font-size: 20px; margin-top: 2px; }
-    .doc .body { flex: 1; min-width: 0; }
-    .doc .title { font-size: 15px; font-weight: 600; margin: 0 0 2px; word-break: break-word; }
-    .doc .meta { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
-    .doc .summary { font-size: 13px; color: var(--muted); margin-bottom: 7px; }
-    .doc .tags { display: flex; flex-wrap: wrap; gap: 5px; }
-    .doc .tag {
-      font-size: 11px; background: var(--bg); border: 1px solid var(--line);
-      border-radius: 999px; padding: 2px 8px; color: var(--muted);
+    .tile:hover { border-color: #c9d1db; box-shadow: 0 4px 14px rgba(28,36,48,.09); }
+    .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .tile .media {
+      aspect-ratio: 4 / 3; background: #eef1f5; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
     }
-    .doc .actions { display: flex; flex-direction: column; gap: 6px; }
-    .doc .actions a, .doc .actions button {
-      background: none; border: 1px solid var(--line); border-radius: 7px;
-      color: var(--muted); font-size: 13px; padding: 6px 9px; cursor: pointer; text-decoration: none; text-align: center;
+    .tile .media img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+    .tile .media .ph { font-size: 38px; color: #c3cad4; }
+    .tile .media .ph.pdf { color: #e7a3a1; }
+    .tile .info { padding: 10px 12px 12px; min-width: 0; }
+    .tile .name {
+      font-size: 14px; font-weight: 600; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word;
     }
-    .doc .actions a:hover { color: var(--accent); border-color: var(--accent); }
-    .doc .actions button:hover { color: var(--danger); border-color: var(--danger); }
+    .tile .sub { font-size: 12px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile .badge {
+      position: absolute; left: 8px; top: 8px; font-size: 11px; font-weight: 600;
+      background: rgba(255,255,255,.92); color: var(--muted); border-radius: 999px; padding: 3px 8px;
+    }
+    .tile .del {
+      position: absolute; right: 8px; top: 8px; width: 30px; height: 30px; border-radius: 50%;
+      border: none; background: rgba(255,255,255,.92); color: var(--muted); cursor: pointer;
+      opacity: 0; box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .tile:hover .del, .tile:focus-within .del { opacity: 1; }
+    .tile .del:hover { color: var(--danger); }
+    @media (hover: none) { .tile .del { opacity: 1; } }
 
-    .empty {
-      text-align: center; color: var(--muted); padding: 40px 12px; font-size: 14px;
-    }
-    .empty i { font-size: 30px; display: block; margin-bottom: 10px; color: var(--line); }
+    .tile.add { background: transparent; border: 2px dashed #c9d1db; color: var(--accent); }
+    .tile.add:hover { background: var(--accent-soft); border-color: var(--accent); box-shadow: none; }
+    .tile.add .media { background: transparent; }
+    .tile.add .media i { font-size: 34px; }
+    .tile.add .name { text-align: center; }
 
-    /* scanner overlay */
+    .code-text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 20px; font-weight: 600; letter-spacing: .03em; color: var(--ink);
+      padding: 14px; text-align: center; overflow-wrap: anywhere;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .tile .media.qr { background: #fff; border-bottom: 1px solid var(--line); }
+    .qr-svg { height: 82%; aspect-ratio: 1; }
+    .qr-svg svg { width: 100%; height: 100%; display: block; }
+
+    .empty { text-align: center; color: var(--muted); padding: 28px 12px 8px; font-size: 14px; }
+
+    /* scanner overlay — above modals so it can be used from the code form */
     .overlay {
-      position: fixed; inset: 0; background: rgba(12,16,22,.94); z-index: 40;
+      position: fixed; inset: 0; background: rgba(12,16,22,.94); z-index: 55;
       display: none; flex-direction: column; align-items: center; justify-content: center; padding: 18px;
     }
     .overlay.open { display: flex; }
@@ -142,7 +189,6 @@
     }
     #qr-reader { width: min(92vw, 420px); border-radius: 12px; overflow: hidden; background: #000; }
     .overlay .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; }
-    .overlay button.alt { font-family: inherit; }
     .overlay .alt {
       margin-top: 14px; background: rgba(255,255,255,.12); color: #fff;
       border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
@@ -181,25 +227,54 @@
     .modal-back.open { display: flex; }
     .modal {
       background: var(--card); border-radius: 12px; padding: 22px;
-      width: min(440px, 94vw);
+      width: min(440px, 94vw); max-height: 92vh; overflow: auto;
     }
     .modal h2 { margin: 0 0 6px; font-size: 17px; display: flex; align-items: center; gap: 9px; }
     .modal p { color: var(--muted); font-size: 13.5px; margin: 6px 0 14px; }
-    .modal input {
-      width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 8px;
-      font-size: 14px; font-family: monospace;
+    .modal label.field { display: block; font-size: 13px; font-weight: 600; margin: 14px 0 6px; }
+    .modal input, .modal textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      font-size: 14px; font-family: inherit; color: var(--ink); background: var(--card);
     }
-    .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-    .modal .row button {
-      border-radius: 8px; padding: 9px 16px; font-size: 14px; cursor: pointer; border: 1px solid var(--line); background: var(--card);
+    .modal textarea { resize: vertical; min-height: 64px; }
+    .modal input:focus, .modal textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .modal .mono, #api-key { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .modal .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+    .modal .row .grow { flex: 1; }
+    .modal .row button, .btn {
+      border-radius: 8px; padding: 9px 16px; font-size: 14px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--card); color: var(--ink);
+      display: inline-flex; align-items: center; gap: 7px;
     }
     .modal .row button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .modal .row button.danger { color: var(--danger); }
+    .modal .row button.danger:hover { border-color: var(--danger); }
     .keystate { font-size: 13px; margin-top: 10px; }
     .keystate.on { color: var(--ok); }
     .keystate.off { color: var(--muted); }
 
-    .signin-note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 26px; }
-    .signin-note a { color: var(--accent); text-decoration: none; }
+    .segmented { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 3px; margin-top: 12px; }
+    .segmented button {
+      flex: 1; border: none; background: none; padding: 8px; border-radius: 7px; cursor: pointer;
+      font-size: 13.5px; font-weight: 600; color: var(--muted);
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .segmented button.active { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    .qr-tools { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .qr-tools .btn { font-size: 13px; padding: 7px 12px; }
+    .qr-preview { display: flex; justify-content: center; margin-top: 12px; }
+    .qr-preview:empty { display: none; }
+    .qr-preview .qr-svg { width: 150px; height: 150px; }
+    .form-err { color: var(--danger); font-size: 13px; margin-top: 10px; min-height: 1em; }
+
+    .code-view { text-align: center; }
+    .code-view .qr-svg { width: min(280px, 70vw); height: auto; margin: 6px auto 0; }
+    .code-view .code-text { font-size: 28px; padding: 18px 8px; -webkit-line-clamp: unset; display: block; background: var(--bg); border-radius: 10px; margin-top: 8px; }
+    .code-view .payload { font-size: 12px; color: var(--muted); word-break: break-all; margin-top: 8px; }
+    .code-view .note { font-size: 14px; color: var(--muted); margin-top: 12px; white-space: pre-wrap; }
+
+    .signin-note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 30px; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body data-initial-scan="<?= initialScan ?>">
@@ -207,9 +282,14 @@
     <div class="appbar-inner">
       <i class="fa-solid fa-box-archive logo"></i>
       <h1>Manual Vault</h1>
-      <button class="icon-btn" id="btn-folder" title="Open Drive folder" style="display:none"><i class="fa-brands fa-google-drive"></i></button>
+      <nav class="tabs" role="tablist">
+        <button class="tab" role="tab" data-view="manuals"><i class="fa-solid fa-book"></i> User Manuals</button>
+        <button class="tab" role="tab" data-view="codes"><i class="fa-solid fa-key"></i> Setup Codes</button>
+      </nav>
+      <div class="spacer"></div>
+      <button class="icon-btn" id="btn-folder" title="Open your Manual Vault folder in Google Drive" hidden><i class="fa-brands fa-google-drive"></i></button>
       <button class="icon-btn" id="btn-settings" title="Settings"><i class="fa-solid fa-gear"></i></button>
-      <div class="account" id="account" style="display:none">
+      <div class="account" id="account" hidden>
         <button class="avatar-btn" id="btn-avatar" title="Account" aria-haspopup="true" aria-expanded="false"></button>
         <div class="account-menu" id="account-menu" role="menu">
           <div class="who">
@@ -225,27 +305,40 @@
   </header>
 
   <div class="wrap">
+    <!-- user manuals -->
+    <section id="view-manuals" hidden>
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search-manuals" type="search" placeholder="Search manuals — brand, model, problem, keyword..." autocomplete="off">
+        </div>
+        <button class="add-btn" id="btn-add-manual"><i class="fa-solid fa-qrcode"></i><span class="label">Scan &amp; Save</span></button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="section-title">
+        <i class="fa-solid fa-file-lines"></i> <span id="manuals-label">All manuals</span>
+        <span class="count" id="manuals-count"></span>
+      </div>
+      <div class="grid" id="manuals-grid"></div>
+      <div class="empty" id="manuals-empty" hidden></div>
+    </section>
 
-    <button class="scan-btn" id="btn-scan">
-      <i class="fa-solid fa-qrcode"></i> Scan &amp; Save
-    </button>
-
-    <div class="search-box">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input id="search" type="search" placeholder="Search manuals — brand, model, problem, keyword..." autocomplete="off">
-    </div>
-
-    <div class="chips" id="chips"></div>
-
-    <div class="section-title" id="list-title">
-      <i class="fa-solid fa-file-lines"></i> <span id="list-label">All manuals</span>
-      <span class="count" id="list-count"></span>
-    </div>
-    <div class="doc-list" id="doc-list"></div>
-    <div class="empty" id="empty" style="display:none">
-      <i class="fa-solid fa-box-open"></i>
-      <span id="empty-text">No manuals yet. Scan the QR code on a paper manual to get started.</span>
-    </div>
+    <!-- setup codes -->
+    <section id="view-codes" hidden>
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search-codes" type="search" placeholder="Search setup codes — device, network, note..." autocomplete="off">
+        </div>
+        <button class="add-btn" id="btn-add-code"><i class="fa-solid fa-plus"></i><span class="label">Add code</span></button>
+      </div>
+      <div class="section-title">
+        <i class="fa-solid fa-key"></i> <span id="codes-label">All setup codes</span>
+        <span class="count" id="codes-count"></span>
+      </div>
+      <div class="grid" id="codes-grid"></div>
+      <div class="empty" id="codes-empty" hidden></div>
+    </section>
 
     <div class="signin-note" id="signin-note"></div>
   </div>
@@ -254,15 +347,16 @@
   <div class="overlay" id="scanner">
     <button class="close" id="btn-scan-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
     <div id="qr-reader"></div>
-    <div class="hint">Point the camera at the QR code on your manual</div>
-    <button class="alt" id="alt-window" style="display:none">
+    <div class="hint" id="scan-hint">Point the camera at the QR code</div>
+    <button class="alt" id="alt-window" hidden>
       <i class="fa-solid fa-up-right-from-square"></i> Open camera in a new tab
     </button>
-    <label class="alt" id="alt-photo">
+    <label class="alt">
       <i class="fa-solid fa-camera"></i> Take a photo instead
-      <input id="qr-file" type="file" accept="image/*" capture="environment" style="display:none">
+      <input id="qr-file" type="file" accept="image/*" capture="environment" hidden>
     </label>
   </div>
+  <div id="qr-decode" hidden></div>
 
   <!-- progress toast -->
   <div class="toast" id="toast">
@@ -289,8 +383,70 @@
     </div>
   </div>
 
+  <!-- add setup code modal -->
+  <div class="modal-back" id="code-form">
+    <div class="modal">
+      <h2><i class="fa-solid fa-key"></i> Add setup code</h2>
+      <div class="segmented" role="tablist">
+        <button data-kind="text" class="active"><i class="fa-solid fa-font"></i> Text code</button>
+        <button data-kind="qr"><i class="fa-solid fa-qrcode"></i> QR code</button>
+      </div>
+
+      <label class="field" for="code-label">Name</label>
+      <input id="code-label" placeholder="e.g. Living room router Wi-Fi" maxlength="120">
+
+      <div id="code-text-fields">
+        <label class="field" for="code-value">Code</label>
+        <input id="code-value" class="mono" placeholder="e.g. 1234-567-890" autocomplete="off">
+      </div>
+
+      <div id="code-qr-fields" hidden>
+        <label class="field" for="code-qr-value">QR content</label>
+        <textarea id="code-qr-value" class="mono" placeholder="Scan or upload the QR code, or paste its content"></textarea>
+        <div class="qr-tools">
+          <button class="btn" id="btn-code-scan" type="button"><i class="fa-solid fa-camera"></i> Scan</button>
+          <label class="btn"><i class="fa-solid fa-image"></i> Upload image
+            <input id="code-qr-file" type="file" accept="image/*" hidden>
+          </label>
+        </div>
+        <div class="qr-preview" id="code-qr-preview"></div>
+      </div>
+
+      <label class="field" for="code-note">Note <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+      <textarea id="code-note" placeholder="Where it's used, what it unlocks..." maxlength="500"></textarea>
+
+      <div class="form-err" id="code-err"></div>
+      <div class="row">
+        <button id="btn-code-cancel">Cancel</button>
+        <button class="primary" id="btn-code-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- setup code detail modal -->
+  <div class="modal-back" id="code-detail">
+    <div class="modal">
+      <h2 id="cd-title"></h2>
+      <div class="code-view" id="cd-body"></div>
+      <div class="row">
+        <button class="danger" id="cd-delete"><i class="fa-solid fa-trash-can"></i> Delete</button>
+        <span class="grow"></span>
+        <button id="cd-copy"><i class="fa-regular fa-copy"></i> Copy</button>
+        <button class="primary" id="cd-close">Done</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    var state = { index: { items: [] }, category: null, query: '', hasApiKey: false, folderUrl: null };
+    var state = {
+      view: 'manuals',
+      index: { items: [], codes: [] },
+      thumbs: {},
+      category: null,
+      queries: { manuals: '', codes: '' },
+      hasApiKey: false,
+      folderUrl: null
+    };
     var scanner = null;
 
     function run(fn) {
@@ -303,13 +459,80 @@
       });
     }
 
-    // ------------------------------------------------------------ rendering
+    function $(id) { return document.getElementById(id); }
 
     function esc(s) {
       return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
       });
     }
+
+    function qrSvg(text) {
+      try {
+        qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+        var q = qrcode(0, 'M');
+        q.addData(text);
+        q.make();
+        return q.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+      } catch (e) {
+        return '<i class="fa-solid fa-triangle-exclamation ph"></i>';
+      }
+    }
+
+    function copyText(text) {
+      // the Apps Script iframe may not grant clipboard-write; fall back to execCommand
+      function legacy() {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        ta.remove();
+        return ok ? Promise.resolve() : Promise.reject();
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(legacy);
+      }
+      return legacy();
+    }
+
+    // --------------------------------------------------------------- views
+
+    function setView(view) {
+      state.view = view;
+      try { localStorage.setItem('mv-view', view); } catch (e) {}
+      document.querySelectorAll('.tab').forEach(function (t) {
+        var on = t.getAttribute('data-view') === view;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      $('view-manuals').hidden = view !== 'manuals';
+      $('view-codes').hidden = view !== 'codes';
+      render();
+    }
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.onclick = function () { setView(t.getAttribute('data-view')); };
+    });
+
+    function render() {
+      if (state.view === 'codes') renderCodes(); else renderManuals();
+    }
+
+    function matches(hay, q) {
+      hay = hay.toLowerCase();
+      return q.toLowerCase().split(/\s+/).filter(Boolean).every(function (w) { return hay.indexOf(w) !== -1; });
+    }
+
+    function addTile(label, icon, onClick) {
+      var el = document.createElement('button');
+      el.className = 'tile add';
+      el.innerHTML = '<div class="media"><i class="fa-solid ' + icon + '"></i></div>' +
+        '<div class="info"><div class="name">' + esc(label) + '</div></div>';
+      el.onclick = onClick;
+      return el;
+    }
+
+    // ------------------------------------------------------------- manuals
 
     function categories() {
       var map = {};
@@ -335,9 +558,8 @@
       return s;
     }
 
-    function render() {
-      // chips
-      var chips = document.getElementById('chips');
+    function renderManuals() {
+      var chips = $('chips');
       chips.innerHTML = '';
       categories().forEach(function (c) {
         var el = document.createElement('div');
@@ -350,11 +572,11 @@
         chips.appendChild(el);
       });
 
-      // documents
+      var q = state.queries.manuals;
       var items = state.index.items.slice();
       if (state.category) items = items.filter(function (it) { return (it.category || 'Uncategorized') === state.category; });
-      if (state.query) {
-        items = items.map(function (it) { return { it: it, s: score(it, state.query) }; })
+      if (q) {
+        items = items.map(function (it) { return { it: it, s: score(it, q) }; })
           .filter(function (x) { return x.s > 0; })
           .sort(function (a, b) { return b.s - a.s; })
           .map(function (x) { return x.it; });
@@ -362,64 +584,202 @@
         items.sort(function (a, b) { return (b.savedAt || '').localeCompare(a.savedAt || ''); });
       }
 
-      document.getElementById('list-label').textContent =
-        state.query ? 'Search results' : (state.category ? state.category : 'All manuals');
-      document.getElementById('list-count').textContent = '(' + items.length + ')';
+      $('manuals-label').textContent = q ? 'Search results' : (state.category || 'All manuals');
+      $('manuals-count').textContent = '(' + items.length + ')';
 
-      var list = document.getElementById('doc-list');
-      list.innerHTML = '';
-      var empty = document.getElementById('empty');
-      if (!items.length) {
-        empty.style.display = 'block';
-        document.getElementById('empty-text').textContent = state.index.items.length
-          ? 'Nothing matches. Try different keywords.'
-          : 'No manuals yet. Scan the QR code on a paper manual to get started.';
-        return;
-      }
-      empty.style.display = 'none';
-
+      var grid = $('manuals-grid');
+      grid.innerHTML = '';
+      grid.appendChild(addTile('Add manual', 'fa-plus', openScanner));
       items.forEach(function (it) {
         var el = document.createElement('div');
-        el.className = 'doc';
-        var meta = [it.brand, it.model].filter(Boolean).join(' ');
-        var when = it.savedAt ? new Date(it.savedAt).toLocaleDateString() : '';
+        el.className = 'tile';
+        el.tabIndex = 0;
+        el.title = it.summary || it.title || it.name;
+        var sub = [[it.brand, it.model].filter(Boolean).join(' '), it.category].filter(Boolean).join(' · ');
+        var thumb = state.thumbs[it.id];
         el.innerHTML =
-          '<div class="icon"><i class="fa-solid fa-file-pdf"></i></div>' +
-          '<div class="body">' +
-            '<div class="title">' + esc(it.title || it.name) + '</div>' +
-            '<div class="meta">' + esc([meta, it.category || '', when].filter(Boolean).join(' · ')) +
-              (it.indexed ? '' : ' · <i class="fa-solid fa-hourglass-half"></i> not indexed') + '</div>' +
-            (it.summary ? '<div class="summary">' + esc(it.summary) + '</div>' : '') +
-            '<div class="tags">' + (it.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') + '</div>' +
+          '<div class="media">' +
+            (thumb ? '<img alt="" src="' + esc(thumb) + '">' : '<i class="fa-solid fa-file-pdf ph pdf"></i>') +
+            (it.indexed ? '' : '<span class="badge"><i class="fa-solid fa-hourglass-half"></i> Not indexed</span>') +
+            '<button class="del" title="Remove"><i class="fa-solid fa-trash-can"></i></button>' +
           '</div>' +
-          '<div class="actions">' +
-            '<a href="' + esc(it.webViewLink) + '" target="_blank" title="Open PDF"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>' +
-            '<button data-del="' + esc(it.id) + '" title="Remove"><i class="fa-solid fa-trash-can"></i></button>' +
+          '<div class="info">' +
+            '<div class="name">' + esc(it.title || it.name) + '</div>' +
+            '<div class="sub">' + esc(sub || (it.savedAt ? new Date(it.savedAt).toLocaleDateString() : '')) + '</div>' +
           '</div>';
-        el.querySelector('[data-del]').onclick = function () { onRemove(it); };
-        list.appendChild(el);
+        var img = el.querySelector('img');
+        if (img) img.onerror = function () { img.outerHTML = '<i class="fa-solid fa-file-pdf ph pdf"></i>'; };
+        el.querySelector('.del').onclick = function (e) { e.stopPropagation(); onRemove(it); };
+        el.onclick = function () { window.open(it.webViewLink, '_blank'); };
+        el.onkeydown = function (e) { if (e.key === 'Enter') el.onclick(); };
+        grid.appendChild(el);
       });
+
+      var empty = $('manuals-empty');
+      empty.hidden = items.length > 0;
+      empty.textContent = state.index.items.length
+        ? 'Nothing matches. Try different keywords.'
+        : 'No manuals yet. Scan the QR code on a paper manual to get started.';
     }
+
+    // ---------------------------------------------------------- setup codes
+
+    function codeMedia(c) {
+      return c.kind === 'qr'
+        ? '<div class="media qr"><div class="qr-svg">' + qrSvg(c.value) + '</div></div>'
+        : '<div class="media"><div class="code-text">' + esc(c.value) + '</div></div>';
+    }
+
+    function renderCodes() {
+      var q = state.queries.codes;
+      var codes = (state.index.codes || []).slice()
+        .filter(function (c) { return !q || matches([c.label, c.note, c.kind === 'text' ? c.value : ''].join(' '), q); })
+        .sort(function (a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); });
+
+      $('codes-label').textContent = q ? 'Search results' : 'All setup codes';
+      $('codes-count').textContent = '(' + codes.length + ')';
+
+      var grid = $('codes-grid');
+      grid.innerHTML = '';
+      grid.appendChild(addTile('Add setup code', 'fa-plus', openCodeForm));
+      codes.forEach(function (c) {
+        var el = document.createElement('div');
+        el.className = 'tile';
+        el.tabIndex = 0;
+        el.innerHTML = codeMedia(c) +
+          '<div class="info">' +
+            '<div class="name">' + esc(c.label) + '</div>' +
+            '<div class="sub">' + (c.kind === 'qr' ? '<i class="fa-solid fa-qrcode"></i> QR code' : '<i class="fa-solid fa-font"></i> Text code') +
+              (c.note ? ' · ' + esc(c.note) : '') + '</div>' +
+          '</div>';
+        el.onclick = function () { openCodeDetail(c); };
+        el.onkeydown = function (e) { if (e.key === 'Enter') el.onclick(); };
+        grid.appendChild(el);
+      });
+
+      var empty = $('codes-empty');
+      empty.hidden = codes.length > 0;
+      empty.textContent = (state.index.codes || []).length
+        ? 'Nothing matches. Try different keywords.'
+        : 'Keep Wi-Fi passwords, pairing codes and setup QR codes from device labels here.';
+    }
+
+    var codeKind = 'text';
+    function setCodeKind(kind) {
+      codeKind = kind;
+      document.querySelectorAll('#code-form .segmented button').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-kind') === kind);
+      });
+      $('code-text-fields').hidden = kind !== 'text';
+      $('code-qr-fields').hidden = kind !== 'qr';
+      $('code-err').textContent = '';
+    }
+    document.querySelectorAll('#code-form .segmented button').forEach(function (b) {
+      b.onclick = function () { setCodeKind(b.getAttribute('data-kind')); };
+    });
+
+    function openCodeForm() {
+      ['code-label', 'code-value', 'code-qr-value', 'code-note'].forEach(function (id) { $(id).value = ''; });
+      $('code-qr-preview').innerHTML = '';
+      setCodeKind('text');
+      $('code-form').classList.add('open');
+      $('code-label').focus();
+    }
+
+    function setQrValue(text) {
+      $('code-qr-value').value = text;
+      updateQrPreview();
+    }
+    function updateQrPreview() {
+      var v = $('code-qr-value').value.trim();
+      $('code-qr-preview').innerHTML = v ? '<div class="qr-svg">' + qrSvg(v) + '</div>' : '';
+    }
+    $('code-qr-value').addEventListener('input', updateQrPreview);
+    $('btn-code-scan').onclick = function () {
+      openScanner({ mode: 'code', onResult: setQrValue });
+    };
+    $('code-qr-file').addEventListener('change', function (e) {
+      var file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      new Html5Qrcode('qr-decode').scanFileV2(file, false).then(function (res) {
+        setQrValue(res.decodedText);
+        $('code-err').textContent = '';
+      }).catch(function () {
+        $('code-err').textContent = 'No QR code found in that image.';
+      });
+    });
+
+    $('btn-code-cancel').onclick = function () { $('code-form').classList.remove('open'); };
+    $('btn-code-save').onclick = function () {
+      var code = {
+        kind: codeKind,
+        label: $('code-label').value.trim(),
+        value: (codeKind === 'qr' ? $('code-qr-value') : $('code-value')).value.trim(),
+        note: $('code-note').value.trim()
+      };
+      if (!code.label) { $('code-err').textContent = 'Give it a name.'; return; }
+      if (!code.value) { $('code-err').textContent = codeKind === 'qr' ? 'Scan, upload or paste the QR code.' : 'Enter the code.'; return; }
+      var btn = this;
+      btn.disabled = true;
+      run('saveCode', code).then(function (res) {
+        btn.disabled = false;
+        if (!res.ok) { $('code-err').textContent = 'Could not save (' + res.reason + ').'; return; }
+        state.index.codes = (state.index.codes || []).concat([res.code]);
+        $('code-form').classList.remove('open');
+        render();
+        toast('ok', 'Setup code saved', esc(res.code.label));
+      }).catch(function (e) {
+        btn.disabled = false;
+        $('code-err').textContent = 'Could not save: ' + (e && e.message);
+      });
+    };
+
+    var detailCode = null;
+    function openCodeDetail(c) {
+      detailCode = c;
+      $('cd-title').innerHTML = (c.kind === 'qr' ? '<i class="fa-solid fa-qrcode"></i> ' : '<i class="fa-solid fa-font"></i> ') + esc(c.label);
+      $('cd-body').innerHTML = c.kind === 'qr'
+        ? '<div class="qr-svg">' + qrSvg(c.value) + '</div><div class="payload">' + esc(c.value) + '</div>'
+        : '<div class="code-text">' + esc(c.value) + '</div>';
+      if (c.note) $('cd-body').insertAdjacentHTML('beforeend', '<div class="note">' + esc(c.note) + '</div>');
+      $('cd-copy').innerHTML = '<i class="fa-regular fa-copy"></i> Copy' + (c.kind === 'qr' ? ' content' : '');
+      $('code-detail').classList.add('open');
+    }
+    $('cd-close').onclick = function () { $('code-detail').classList.remove('open'); };
+    $('cd-copy').onclick = function () {
+      copyText(detailCode.value).then(function () { toast('ok', 'Copied', ''); })
+        .catch(function () { toast('err', 'Could not copy', 'Select the text and copy it manually.'); });
+    };
+    $('cd-delete').onclick = function () {
+      var c = detailCode;
+      if (!confirm('Delete the setup code "' + c.label + '"?')) return;
+      $('code-detail').classList.remove('open');
+      state.index.codes = state.index.codes.filter(function (x) { return x.id !== c.id; });
+      render();
+      run('removeCode', c.id).then(function (res) {
+        if (!res.ok) toast('err', 'Could not delete', esc(res.reason));
+        else toast('ok', 'Deleted', esc(c.label));
+      }).catch(function (e) { toast('err', 'Could not delete', esc(e && e.message)); });
+    };
 
     // -------------------------------------------------------------- toast
 
     var toastTimer = null;
     function toast(kind, title, detailHtml, sticky) {
       clearTimeout(toastTimer);
-      var t = document.getElementById('toast');
-      var icon = document.getElementById('toast-icon');
+      var t = $('toast');
+      var icon = $('toast-icon');
       icon.className = 't-icon ' + kind;
       icon.innerHTML = kind === 'busy' ? '<i class="fa-solid fa-circle-notch fa-spin"></i>'
         : kind === 'ok' ? '<i class="fa-solid fa-circle-check"></i>'
         : '<i class="fa-solid fa-circle-exclamation"></i>';
-      document.getElementById('toast-title').textContent = title;
-      document.getElementById('toast-detail').innerHTML = detailHtml || '';
+      $('toast-title').textContent = title;
+      $('toast-detail').innerHTML = detailHtml || '';
       t.classList.add('show');
       if (!sticky) toastTimer = setTimeout(function () { t.classList.remove('show'); }, 6000);
     }
-    document.getElementById('toast-close').onclick = function () {
-      document.getElementById('toast').classList.remove('show');
-    };
+    $('toast-close').onclick = function () { $('toast').classList.remove('show'); };
 
     // ------------------------------------------------------------- scanner
 
@@ -427,7 +787,9 @@
     // live scanning in-frame is blocked (Chrome). The scan page on our own
     // domain runs top-level, scans, and posts the result back here.
     var SCAN_ORIGIN = 'https://manuals.sankhacooray.com';
-    var scanWin = null;
+    // mode 'manual': the result is a manual link (the scan tab then becomes the PDF tab);
+    // mode 'code': any QR content, handed to onResult (the scan tab closes itself).
+    var scanTarget = { mode: 'manual', onResult: handleScan };
 
     function cameraBlockedInFrame() {
       var fp = document.featurePolicy || document.permissionsPolicy;
@@ -435,8 +797,8 @@
     }
 
     function openScanWindow() {
-      scanWin = window.open(SCAN_ORIGIN + '/scan.html', 'manual-vault-scan');
-      if (!scanWin) {
+      var w = window.open(SCAN_ORIGIN + '/scan.html' + (scanTarget.mode === 'code' ? '?mode=code' : ''), 'manual-vault-scan');
+      if (!w) {
         toast('err', 'Popup blocked', 'Allow popups for this page, or use "Take a photo instead".');
         return false;
       }
@@ -447,53 +809,72 @@
 
     window.addEventListener('message', function (e) {
       if (e.origin !== SCAN_ORIGIN || !e.data || e.data.type !== 'manual-vault-scan') return;
-      e.source.postMessage({ type: 'manual-vault-ack' }, e.origin);
-      // the scan tab turns into the PDF tab itself, so don't open another
-      handleScan(e.data.text, { pdfOpened: true });
+      var target = scanTarget;
+      e.source.postMessage({ type: 'manual-vault-ack', next: target.mode === 'code' ? 'close' : 'open' }, e.origin);
+      if (target.mode === 'code') {
+        $('toast').classList.remove('show');
+        target.onResult(e.data.text);
+      } else {
+        // the scan tab turns into the PDF tab itself, so don't open another
+        handleScan(e.data.text, { pdfOpened: true });
+      }
     });
 
-    function openScanner() {
+    function openScanner(target) {
+      scanTarget = (target && target.onResult) ? target : { mode: 'manual', onResult: handleScan };
       if (cameraBlockedInFrame() && openScanWindow()) return;
-      document.getElementById('scanner').classList.add('open');
+      $('scan-hint').textContent = scanTarget.mode === 'code'
+        ? 'Point the camera at the setup QR code' : 'Point the camera at the QR code on your manual';
+      $('alt-window').hidden = true;
+      $('scanner').classList.add('open');
       scanner = new Html5Qrcode('qr-reader');
       scanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 240, height: 240 } },
         onDecoded,
         function () { /* per-frame decode misses are normal */ }
-      ).catch(function (err) {
-        document.querySelector('#scanner .hint').textContent =
-          'The camera can\'t open inside this page.';
-        document.getElementById('alt-window').style.display = '';
+      ).then(function () {
+        mirrorPreview('qr-reader');
+      }).catch(function () {
+        $('scan-hint').textContent = 'The camera can\'t open inside this page.';
+        $('alt-window').hidden = false;
       });
     }
 
+    // Mirror the preview like a selfie view for front/desktop cameras, but not
+    // for a phone's rear camera. Desktop webcams usually report no facingMode.
+    function mirrorPreview(readerId) {
+      var video = document.querySelector('#' + readerId + ' video');
+      var track = video && video.srcObject && video.srcObject.getVideoTracks()[0];
+      var facing = track && track.getSettings ? track.getSettings().facingMode : '';
+      if (video) video.style.transform = facing === 'environment' ? '' : 'scaleX(-1)';
+    }
+
     function closeScanner() {
-      document.getElementById('scanner').classList.remove('open');
+      $('scanner').classList.remove('open');
       if (scanner) {
         var s = scanner; scanner = null;
         s.stop().then(function () { s.clear(); }).catch(function () {});
       }
     }
 
-    document.getElementById('alt-window').onclick = openScanWindow;
+    $('alt-window').onclick = openScanWindow;
 
     function onDecoded(text) {
       closeScanner();
-      handleScan(text);
+      scanTarget.onResult(text);
     }
 
-    document.getElementById('qr-file').addEventListener('change', function (e) {
+    $('qr-file').addEventListener('change', function (e) {
       var file = e.target.files && e.target.files[0];
-      if (!file) return;
-      var s = scanner || new Html5Qrcode('qr-reader');
-      s.scanFileV2(file, false).then(function (res) {
-        closeScanner();
-        handleScan(res.decodedText);
-      }).catch(function () {
-        document.querySelector('#scanner .hint').textContent = 'No QR code found in that photo — try again.';
-      });
       e.target.value = '';
+      if (!file) return;
+      new Html5Qrcode('qr-decode').scanFileV2(file, false).then(function (res) {
+        closeScanner();
+        scanTarget.onResult(res.decodedText);
+      }).catch(function () {
+        $('scan-hint').textContent = 'No QR code found in that photo — try again.';
+      });
     });
 
     // ----------------------------------------------------------- scan flow
@@ -525,10 +906,12 @@
         }
         if (!res.hasApiKey) {
           toast('ok', 'Saved to Drive', 'Add a Claude API key in settings to enable smart indexing.');
+          loadThumbs();
           return;
         }
         toast('busy', 'Indexing with Claude...', esc(res.item.name), true);
         run('indexManual', res.item.id).then(function (ir) {
+          loadThumbs();
           if (ir.ok) {
             upsertLocal(ir.item);
             toast('ok', 'Saved and indexed', esc(ir.item.title) + ' · ' + esc(ir.item.category));
@@ -567,37 +950,51 @@
       }).catch(function (e) { toast('err', 'Could not remove', esc(e && e.message)); });
     }
 
+    function loadThumbs() {
+      run('getThumbnails').then(function (thumbs) {
+        state.thumbs = thumbs || {};
+        if (state.view === 'manuals') render();
+      }).catch(function () { /* thumbnails are cosmetic */ });
+    }
+
     // ------------------------------------------------------------ settings
 
     function openSettings() {
-      document.getElementById('settings').classList.add('open');
-      var ks = document.getElementById('key-state');
+      $('settings').classList.add('open');
+      var ks = $('key-state');
       ks.className = 'keystate ' + (state.hasApiKey ? 'on' : 'off');
       ks.innerHTML = state.hasApiKey
         ? '<i class="fa-solid fa-circle-check"></i> A key is saved for your account.'
         : '<i class="fa-solid fa-circle-info"></i> No key saved yet.';
     }
-    document.getElementById('btn-settings').onclick = openSettings;
-    document.getElementById('settings').addEventListener('click', function (e) {
-      if (e.target === this) this.classList.remove('open');
-    });
-    document.getElementById('btn-key-save').onclick = function () {
-      var key = document.getElementById('api-key').value;
+    $('btn-settings').onclick = openSettings;
+    $('btn-key-save').onclick = function () {
+      var key = $('api-key').value;
       run('saveApiKey', key).then(function (res) {
         if (!res.ok) { toast('err', 'Invalid key', 'Keys start with sk-ant-'); return; }
         state.hasApiKey = res.hasApiKey;
-        document.getElementById('api-key').value = '';
-        document.getElementById('settings').classList.remove('open');
+        $('api-key').value = '';
+        $('settings').classList.remove('open');
         toast('ok', res.hasApiKey ? 'API key saved' : 'API key cleared', '');
       }).catch(function (e) { toast('err', 'Could not save key', esc(e && e.message)); });
     };
-    document.getElementById('btn-key-clear').onclick = function () {
+    $('btn-key-clear').onclick = function () {
       run('saveApiKey', '').then(function () {
         state.hasApiKey = false;
-        document.getElementById('settings').classList.remove('open');
+        $('settings').classList.remove('open');
         toast('ok', 'API key cleared', '');
       });
     };
+
+    // modals close on backdrop click and Escape
+    document.querySelectorAll('.modal-back').forEach(function (m) {
+      m.addEventListener('click', function (e) { if (e.target === m) m.classList.remove('open'); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if ($('scanner').classList.contains('open')) { closeScanner(); return; }
+      document.querySelectorAll('.modal-back.open').forEach(function (m) { m.classList.remove('open'); });
+    });
 
     // ----------------------------------------------------------------- account
 
@@ -606,7 +1003,7 @@
 
     function showAccount(email, profile) {
       var name = (profile && profile.name) || email.split('@')[0];
-      var btn = document.getElementById('btn-avatar');
+      var btn = $('btn-avatar');
       var initial = function () { btn.textContent = name.charAt(0).toUpperCase(); };
       if (profile && profile.picture) {
         var img = document.createElement('img');
@@ -619,20 +1016,20 @@
         initial();
       }
       btn.title = name + ' (' + email + ')';
-      document.getElementById('who-name').textContent = name;
-      document.getElementById('who-email').textContent = email;
-      document.getElementById('switch-account').href =
+      $('who-name').textContent = name;
+      $('who-email').textContent = email;
+      $('switch-account').href =
         'https://accounts.google.com/AccountChooser?continue=' + encodeURIComponent(APP_URL);
       // Google's Logout ignores off-Google continue URLs; the appengine hop forwards to the landing page.
-      document.getElementById('sign-out').href =
+      $('sign-out').href =
         'https://accounts.google.com/Logout?continue=' + encodeURIComponent(
           'https://appengine.google.com/_ah/logout?continue=' + LANDING_URL);
-      document.getElementById('account').style.display = '';
+      $('account').hidden = false;
     }
 
     (function () {
-      var btn = document.getElementById('btn-avatar');
-      var menu = document.getElementById('account-menu');
+      var btn = $('btn-avatar');
+      var menu = $('account-menu');
       function setOpen(open) {
         menu.classList.toggle('open', open);
         btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -646,34 +1043,38 @@
 
     // ---------------------------------------------------------------- init
 
-    document.getElementById('btn-scan').onclick = openScanner;
-    document.getElementById('btn-scan-close').onclick = closeScanner;
-    document.getElementById('search').addEventListener('input', function () {
-      state.query = this.value.trim();
-      render();
-    });
+    $('btn-add-manual').onclick = function () { openScanner(); };
+    $('btn-add-code').onclick = openCodeForm;
+    $('btn-scan-close').onclick = closeScanner;
+    $('search-manuals').addEventListener('input', function () { state.queries.manuals = this.value.trim(); render(); });
+    $('search-codes').addEventListener('input', function () { state.queries.codes = this.value.trim(); render(); });
+
+    var savedView = null;
+    try { savedView = localStorage.getItem('mv-view'); } catch (e) {}
+    setView(savedView === 'codes' ? 'codes' : 'manuals');
 
     run('getAppData').then(function (data) {
-      state.index = data.index || { items: [] };
+      state.index = data.index || { items: [], codes: [] };
+      state.index.codes = state.index.codes || [];
       state.hasApiKey = data.hasApiKey;
       state.folderUrl = data.folderUrl;
       if (data.folderUrl) {
-        var b = document.getElementById('btn-folder');
-        b.style.display = '';
-        b.onclick = function () { window.open(data.folderUrl, '_blank'); };
+        $('btn-folder').hidden = false;
+        $('btn-folder').onclick = function () { window.open(data.folderUrl, '_blank'); };
       }
       if (data.email) {
         showAccount(data.email, data.profile);
-        document.getElementById('signin-note').textContent =
-          'Your manuals are stored in a "Manual Vault" folder in your own Google Drive.';
+        $('signin-note').textContent =
+          'Your manuals and setup codes are stored in a "Manual Vault" folder in your own Google Drive.';
       }
       render();
+      if (state.index.items.length) loadThumbs();
       var initialScan = document.body.getAttribute('data-initial-scan');
       // a ?scan= link can come from anywhere, so confirm before saving to Drive
       if (initialScan) {
         toast('ok', 'Save this scanned manual?',
           esc(initialScan) + '<div><button class="t-action" id="confirm-scan">Save to vault</button></div>', true);
-        document.getElementById('confirm-scan').onclick = function () {
+        $('confirm-scan').onclick = function () {
           handleScan(initialScan, { pdfOpened: true });
         };
       }
