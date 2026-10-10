@@ -142,6 +142,7 @@
     }
     #qr-reader { width: min(92vw, 420px); border-radius: 12px; overflow: hidden; background: #000; }
     .overlay .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; }
+    .overlay button.alt { font-family: inherit; }
     .overlay .alt {
       margin-top: 14px; background: rgba(255,255,255,.12); color: #fff;
       border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
@@ -149,6 +150,10 @@
       display: inline-flex; align-items: center; gap: 8px;
     }
 
+    .t-action {
+      margin-top: 8px; background: var(--accent); color: #fff; border: none;
+      border-radius: 6px; padding: 6px 12px; font: inherit; font-weight: 600; cursor: pointer;
+    }
     /* floating progress toast */
     .toast {
       position: fixed; right: 16px; bottom: 16px; z-index: 60;
@@ -197,7 +202,7 @@
     .signin-note a { color: var(--accent); text-decoration: none; }
   </style>
 </head>
-<body>
+<body data-initial-scan="<?= initialScan ?>">
   <header class="appbar">
     <div class="appbar-inner">
       <i class="fa-solid fa-box-archive logo"></i>
@@ -250,6 +255,9 @@
     <button class="close" id="btn-scan-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
     <div id="qr-reader"></div>
     <div class="hint">Point the camera at the QR code on your manual</div>
+    <button class="alt" id="alt-window" style="display:none">
+      <i class="fa-solid fa-up-right-from-square"></i> Open camera in a new tab
+    </button>
     <label class="alt" id="alt-photo">
       <i class="fa-solid fa-camera"></i> Take a photo instead
       <input id="qr-file" type="file" accept="image/*" capture="environment" style="display:none">
@@ -415,7 +423,37 @@
 
     // ------------------------------------------------------------- scanner
 
+    // Apps Script serves this page in iframes without camera permission, so
+    // live scanning in-frame is blocked (Chrome). The scan page on our own
+    // domain runs top-level, scans, and posts the result back here.
+    var SCAN_ORIGIN = 'https://manuals.sankhacooray.com';
+    var scanWin = null;
+
+    function cameraBlockedInFrame() {
+      var fp = document.featurePolicy || document.permissionsPolicy;
+      return !!(fp && fp.allowsFeature && !fp.allowsFeature('camera'));
+    }
+
+    function openScanWindow() {
+      scanWin = window.open(SCAN_ORIGIN + '/scan.html', 'manual-vault-scan');
+      if (!scanWin) {
+        toast('err', 'Popup blocked', 'Allow popups for this page, or use "Take a photo instead".');
+        return false;
+      }
+      closeScanner();
+      toast('busy', 'Scanning in the other tab...', 'Point the camera at the QR code. The result comes back here.', true);
+      return true;
+    }
+
+    window.addEventListener('message', function (e) {
+      if (e.origin !== SCAN_ORIGIN || !e.data || e.data.type !== 'manual-vault-scan') return;
+      e.source.postMessage({ type: 'manual-vault-ack' }, e.origin);
+      // the scan tab turns into the PDF tab itself, so don't open another
+      handleScan(e.data.text, { pdfOpened: true });
+    });
+
     function openScanner() {
+      if (cameraBlockedInFrame() && openScanWindow()) return;
       document.getElementById('scanner').classList.add('open');
       scanner = new Html5Qrcode('qr-reader');
       scanner.start(
@@ -425,7 +463,8 @@
         function () { /* per-frame decode misses are normal */ }
       ).catch(function (err) {
         document.querySelector('#scanner .hint').textContent =
-          'Camera unavailable here — use "Take a photo instead" below.';
+          'The camera can\'t open inside this page.';
+        document.getElementById('alt-window').style.display = '';
       });
     }
 
@@ -436,6 +475,8 @@
         s.stop().then(function () { s.clear(); }).catch(function () {});
       }
     }
+
+    document.getElementById('alt-window').onclick = openScanWindow;
 
     function onDecoded(text) {
       closeScanner();
@@ -457,14 +498,15 @@
 
     // ----------------------------------------------------------- scan flow
 
-    function handleScan(text) {
+    function handleScan(text, opts) {
+      opts = opts || {};
       text = String(text || '').trim();
       if (!/^https?:\/\//i.test(text)) {
         toast('err', 'Not a link', 'The QR code contains: ' + esc(text));
         return;
       }
       // open the manual right away while we save in the background
-      var opened = window.open(text, '_blank');
+      var opened = opts.pdfOpened || window.open(text, '_blank');
       var link = '<a href="' + esc(text) + '" target="_blank">open the PDF</a>';
       toast('busy', 'Saving to Drive...', (opened ? '' : 'Popup blocked — ' + link + ' · ') + esc(text), true);
 
@@ -626,6 +668,15 @@
           'Your manuals are stored in a "Manual Vault" folder in your own Google Drive.';
       }
       render();
+      var initialScan = document.body.getAttribute('data-initial-scan');
+      // a ?scan= link can come from anywhere, so confirm before saving to Drive
+      if (initialScan) {
+        toast('ok', 'Save this scanned manual?',
+          esc(initialScan) + '<div><button class="t-action" id="confirm-scan">Save to vault</button></div>', true);
+        document.getElementById('confirm-scan').onclick = function () {
+          handleScan(initialScan, { pdfOpened: true });
+        };
+      }
     }).catch(function (e) {
       toast('err', 'Could not load your vault', esc(e && e.message), true);
     });

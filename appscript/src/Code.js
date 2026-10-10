@@ -23,9 +23,11 @@ var CLAUDE_MAX_PDF_BYTES = 22 * 1024 * 1024;
 
 // ---------------------------------------------------------------- web entry
 
-function doGet() {
-  return HtmlService.createTemplateFromFile('Index')
-    .evaluate()
+function doGet(e) {
+  var t = HtmlService.createTemplateFromFile('Index');
+  // ?scan=<url>: hand-off from the scan page when it has no opener to post to.
+  t.initialScan = (e && e.parameter && e.parameter.scan) || '';
+  return t.evaluate()
     .setTitle('Manual Vault')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }

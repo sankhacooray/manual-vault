@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Scan · Manual Vault</title>
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!--
+    Camera page for the Apps Script web app. Apps Script serves its UI in
+    iframes without camera permission, so the app opens this top-level page
+    instead. The decoded link goes back to the app with postMessage; this tab
+    then becomes the PDF tab. With no opener (or no ack), it hands off via
+    the app's ?scan= parameter.
+  -->
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: #0c1016; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; margin-bottom: 18px; }
+    .brand i { color: #4f94ef; font-size: 22px; }
+    #qr-reader { width: min(92vw, 460px); border-radius: 12px; overflow: hidden; background: #000; }
+    .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; max-width: 460px; }
+    .hint a { color: #8ab4f8; }
+  </style>
+</head>
+<body>
+  <div class="brand"><i class="fa-solid fa-box-archive"></i> Manual Vault</div>
+  <div id="qr-reader"></div>
+  <div class="hint" id="hint">Point the camera at the QR code on your manual</div>
+
+  <script>
+    var APP_URL = 'https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec';
+    var hint = document.getElementById('hint');
+    var scanner = new Html5Qrcode('qr-reader');
+    var done = false;
+
+    function handOff(text) {
+      var acked = false;
+      window.addEventListener('message', function (e) {
+        if (e.source === window.opener && e.data && e.data.type === 'manual-vault-ack') {
+          acked = true;
+          location.replace(text);
+        }
+      });
+      if (window.opener) {
+        try { window.opener.postMessage({ type: 'manual-vault-scan', text: text }, '*'); } catch (e) {}
+      }
+      setTimeout(function () {
+        if (!acked) location.replace(APP_URL + '?scan=' + encodeURIComponent(text));
+      }, 2000);
+    }
+
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 260, height: 260 } },
+      function (text) {
+        if (done) return;
+        text = String(text || '').trim();
+        if (!/^https?:\/\//i.test(text)) {
+          hint.textContent = 'That QR code isn\'t a link: ' + text;
+          return;
+        }
+        done = true;
+        hint.textContent = 'Found it — sending to Manual Vault...';
+        scanner.stop().catch(function () {}).then(function () { handOff(text); });
+      },
+      function () { /* per-frame decode misses are normal */ }
+    ).catch(function () {
+      hint.innerHTML = 'Camera blocked. Allow camera access for this site in the address bar, then ' +
+        '<a href="">reload</a>.';
+    });
+  </script>
+</body>
+</html>
