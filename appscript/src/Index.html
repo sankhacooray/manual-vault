@@ -175,6 +175,11 @@
       position: absolute; top: 14px; right: 14px;
       background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 8px;
     }
+    .cam-controls { width: min(92vw, 460px); margin-top: 12px; }
+    .cam-controls:empty { display: none; }
+    .cam-controls .zoom { display: flex; align-items: center; gap: 10px; color: #cfd6df; }
+    .cam-controls .zoom input { flex: 1; accent-color: #4f94ef; }
+    .cam-controls .cam-tip { color: #9aa5b1; font-size: 12.5px; text-align: center; margin-top: 8px; }
     #qr-reader { width: min(92vw, 420px); border-radius: 12px; overflow: hidden; background: #000; }
     .overlay .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; }
     .overlay .alt {
@@ -324,6 +329,7 @@
     <button class="close" id="btn-scan-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
     <div id="qr-reader"></div>
     <div class="hint" id="scan-hint">Point the camera at the QR code</div>
+    <div class="cam-controls" id="cam-controls"></div>
     <button class="alt" id="alt-window" hidden>
       <i class="fa-solid fa-up-right-from-square"></i> Open camera in a new tab
     </button>
@@ -773,18 +779,90 @@
       $('scan-hint').textContent = 'Point the camera at a manual or setup QR code';
       $('alt-window').hidden = true;
       $('scanner').classList.add('open');
-      scanner = new Html5Qrcode('qr-reader');
+      scanner = newScanner('qr-reader');
       scanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 240, height: 240 } },
+        SCAN_CONFIG,
         onDecoded,
         function () { /* per-frame decode misses are normal */ }
       ).then(function () {
         mirrorPreview('qr-reader');
+        tuneCamera('qr-reader', 'cam-controls');
       }).catch(function () {
         $('scan-hint').textContent = 'The camera can\'t open inside this page.';
         $('alt-window').hidden = false;
       });
+    }
+
+    // Sharper feed + QR-only decoding (native BarcodeDetector where available).
+    // Keep videoConstraints to plain keys: html5-qrcode drops the whole object
+    // if it sees one it doesn't recognise. Focus is applied after start.
+    var SCAN_CONFIG = {
+      fps: 15,
+      qrbox: function (w, h) { var s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; },
+      videoConstraints: {
+        facingMode: 'environment',
+        width: { ideal: 1920 }, height: { ideal: 1080 }
+      }
+    };
+    function newScanner(id) {
+      return new Html5Qrcode(id, {
+        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false
+      });
+    }
+
+    // Focus and zoom, where the camera supports them: continuous autofocus,
+    // tap-to-focus on the preview, and a zoom slider so the phone can be held
+    // further back than its minimum focus distance.
+    function tuneCamera(readerId, controlsId) {
+      var video = document.querySelector('#' + readerId + ' video');
+      var track = video && video.srcObject && video.srcObject.getVideoTracks()[0];
+      var controls = document.getElementById(controlsId);
+      controls.innerHTML = '';
+      if (!track || !track.getCapabilities) return;
+      var caps = track.getCapabilities();
+      var modes = caps.focusMode || [];
+      var apply = function (c) { return track.applyConstraints({ advanced: [c] }).catch(function () {}); };
+
+      if (modes.indexOf('continuous') !== -1) apply({ focusMode: 'continuous' });
+
+      var canTap = modes.indexOf('single-shot') !== -1 || modes.indexOf('manual') !== -1;
+      if (canTap) {
+        var poi = !!(navigator.mediaDevices.getSupportedConstraints() || {}).pointsOfInterest;
+        video.style.cursor = 'crosshair';
+        video.addEventListener('click', function (e) {
+          var r = video.getBoundingClientRect();
+          var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+          if (video.style.transform) x = 1 - x;  // mirrored preview
+          var c = { focusMode: modes.indexOf('single-shot') !== -1 ? 'single-shot' : 'manual' };
+          if (poi) c.pointsOfInterest = [{ x: x, y: y }];
+          apply(c).then(function () {
+            if (modes.indexOf('continuous') !== -1) setTimeout(function () { apply({ focusMode: 'continuous' }); }, 2500);
+          });
+        });
+      }
+
+      var hints = [];
+      if (caps.zoom && caps.zoom.max > caps.zoom.min) {
+        var row = document.createElement('label');
+        row.className = 'zoom';
+        row.innerHTML = '<i class="fa-solid fa-magnifying-glass-minus"></i>' +
+          '<input type="range" min="' + caps.zoom.min + '" max="' + Math.min(caps.zoom.max, 8) + '" step="' + (caps.zoom.step || 0.1) +
+          '" value="' + ((track.getSettings() || {}).zoom || caps.zoom.min) + '">' +
+          '<i class="fa-solid fa-magnifying-glass-plus"></i>';
+        row.querySelector('input').addEventListener('input', function () { apply({ zoom: Number(this.value) }); });
+        controls.appendChild(row);
+        hints.push('blurry? step back and zoom in');
+      }
+      if (canTap) hints.push('tap the preview to focus');
+      if (hints.length) {
+        var h = document.createElement('div');
+        h.className = 'cam-tip';
+        h.textContent = hints.join(' · ').replace(/^./, function (c) { return c.toUpperCase(); });
+        controls.appendChild(h);
+      }
     }
 
     // Mirror the preview like a selfie view for front/desktop cameras, but not
@@ -798,6 +876,7 @@
 
     function closeScanner() {
       $('scanner').classList.remove('open');
+      $('cam-controls').innerHTML = '';
       if (scanner) {
         var s = scanner; scanner = null;
         s.stop().then(function () { s.clear(); }).catch(function () {});
