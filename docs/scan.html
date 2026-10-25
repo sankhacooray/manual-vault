@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>Scan · Manual Vault</title>
-  <link rel="icon" href="assets/icon-192.png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <!--
     Camera page for the Apps Script web app. Apps Script serves its UI in
@@ -17,26 +20,38 @@
   -->
   <style>
     * { box-sizing: border-box; }
+    html { background: #0b1017; overscroll-behavior: none; }
     body {
-      margin: 0; min-height: 100vh; background: #0c1016; color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0; min-height: 100vh; min-height: 100dvh; color: #e7ecf3; overscroll-behavior: none;
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(47, 124, 240, .18), transparent 60%), #0b1017;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
       display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px;
     }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; margin-bottom: 18px; }
-    .brand i { color: #4f94ef; font-size: 22px; }
-    .cam-controls { width: min(92vw, 460px); margin-top: 12px; }
-    .cam-controls:empty { display: none; }
-    .cam-controls .zoom { display: flex; align-items: center; gap: 10px; color: #cfd6df; }
-    .cam-controls .zoom input { flex: 1; accent-color: #4f94ef; }
-    .cam-controls .cam-tip { color: #9aa5b1; font-size: 12.5px; text-align: center; margin-top: 8px; }
-    #qr-reader { width: min(92vw, 460px); border-radius: 12px; overflow: hidden; background: #000; }
-    .hint { color: #cfd6df; font-size: 14px; margin-top: 16px; text-align: center; max-width: 460px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16.5px; letter-spacing: -.01em; margin-bottom: 20px; }
+    .brand-mark { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: #2f7cf0; color: #fff; font-size: 14px; }
+    .frame {
+      width: min(92vw, 460px); padding: 8px; border-radius: 22px;
+      background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+    }
+    #qr-reader { width: 100%; border-radius: 16px; overflow: hidden; background: #000; border: none !important; }
+    #qr-reader video { display: block; }
+    .hint {
+      display: inline-flex; align-items: center; gap: 9px; margin-top: 18px; padding: 10px 16px; border-radius: 999px;
+      background: rgba(255, 255, 255, .07); color: #cfd8e3; font-size: 14px; text-align: center; max-width: min(92vw, 460px);
+    }
     .hint a { color: #8ab4f8; }
+    .cam-controls { width: min(92vw, 460px); margin-top: 14px; }
+    .cam-controls:empty { display: none; }
+    .cam-controls .zoom { display: flex; align-items: center; gap: 12px; color: #cfd8e3; padding: 0 6px; }
+    .cam-controls .zoom input { flex: 1; accent-color: #4b90f5; }
+    .cam-controls .cam-tip { color: #97a2b3; font-size: 12.5px; text-align: center; margin-top: 8px; }
   </style>
 </head>
 <body>
-  <div class="brand"><i class="fa-solid fa-box-archive"></i> Manual Vault</div>
-  <div id="qr-reader"></div>
+  <div class="brand"><span class="brand-mark"><i class="fa-solid fa-box-archive"></i></span>Manual Vault</div>
+  <div class="frame"><div id="qr-reader"></div></div>
   <div class="hint" id="hint">Point the camera at a manual or setup QR code</div>
   <div class="cam-controls" id="cam-controls"></div>
 

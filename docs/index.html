@@ -2,32 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Manual Vault — trash the paper, keep the manual</title>
-  <meta name="description" content="Scan the QR code on a paper product manual, save the PDF straight into your own Google Drive, and let Claude index it for search.">
+  <meta name="description" content="Scan the QR code on a paper product manual, save the PDF to your own Google Drive, and let Claude name and tag it so you can search by the problem you have.">
   <link rel="canonical" href="https://manuals.sankhacooray.com/">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Manual Vault">
   <meta property="og:title" content="Manual Vault — trash the paper, keep the manual">
-  <meta property="og:description" content="Scan the QR code on a paper product manual, save the PDF straight into your own Google Drive, and let Claude index it for search.">
+  <meta property="og:description" content="Scan the QR code on a paper product manual, save the PDF to your own Google Drive, and let Claude name and tag it so you can search by the problem you have.">
   <meta property="og:url" content="https://manuals.sankhacooray.com/">
-  <meta property="og:image" content="https://manuals.sankhacooray.com/assets/og-image.png">
+  <meta property="og:image" content="https://manuals.sankhacooray.com/assets/og-image.png?v=2">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Manual Vault — an archive box logo with the tagline: trash the paper, keep the manual.">
+  <meta property="og:image:alt" content="Manual Vault: a paper manual's QR code is scanned with a phone and the PDF lands in a Manual Vault folder in Google Drive, titled and tagged by Claude.">
   <meta property="og:locale" content="en_US">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Manual Vault — trash the paper, keep the manual">
-  <meta name="twitter:description" content="Scan the QR code on a paper product manual, save the PDF straight into your own Google Drive, and let Claude index it for search.">
-  <meta name="twitter:image" content="https://manuals.sankhacooray.com/assets/og-image.png">
-  <meta name="twitter:image:alt" content="Manual Vault — an archive box logo with the tagline: trash the paper, keep the manual.">
+  <meta name="twitter:description" content="Scan the QR code on a paper product manual, save the PDF to your own Google Drive, and let Claude name and tag it so you can search by the problem you have.">
+  <meta name="twitter:image" content="https://manuals.sankhacooray.com/assets/og-image.png?v=2">
+  <meta name="twitter:image:alt" content="Manual Vault: a paper manual's QR code is scanned with a phone and the PDF lands in a Manual Vault folder in Google Drive, titled and tagged by Claude.">
 
   <!-- Icons + PWA -->
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#1a73e8">
@@ -35,109 +36,428 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Manual Vault">
 
+  <script>try { var t = localStorage.getItem('sc-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/site.css?v=2">
   <style>
-    :root {
-      --bg: #f6f7f9;
-      --card: #ffffff;
-      --ink: #1c2430;
-      --muted: #64707f;
-      --line: #e2e6ec;
-      --accent: #1a73e8;
+    #particles { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+    main, .bar-wrap { position: relative; }
+    main { z-index: 1; }
+
+    /* screen-fit groups */
+    .group {
+      display: flex; flex-direction: column; justify-content: center;
+      width: 100%; max-width: 1240px; margin: 0 auto;
+      padding: clamp(18px, 4vh, 52px) 24px;
+      scroll-margin-top: var(--bar-h, 72px);
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg); color: var(--ink);
-      display: flex; flex-direction: column; min-height: 100vh;
+    .group:last-child { padding-bottom: 0; }
+    .group:last-child > .footer { margin-top: auto; }
+    .group-body { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+    .group-body > .eyebrow { margin-top: 0; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+      font-size: 12.5px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-text);
+      margin-bottom: 12px;
     }
-    .appbar {
-      position: sticky; top: 0; z-index: 10;
-      background: var(--card); border-bottom: 1px solid var(--line);
+    h1, h2, h3 { letter-spacing: -.025em; }
+    h2 { font-size: clamp(26px, 4.4vh, 40px); line-height: 1.12; margin: 0 0 10px; }
+    .sub { font-size: clamp(15px, 2.2vh, 18px); line-height: 1.55; color: var(--muted); margin: 0; max-width: 640px; }
+    .head-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: end; margin-bottom: clamp(18px, 3.4vh, 36px); }
+    .head-row h2 { margin: 0; }
+    .head-row .sub { justify-self: end; }
+
+    /* hero */
+    .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 4vw, 64px); align-items: center; }
+    .hero h1 { font-size: clamp(38px, 7.6vh, 68px); line-height: 1.02; margin: 0 0 clamp(14px, 2.6vh, 24px); font-weight: 800; }
+    .hero h1 em { font-style: normal; color: var(--accent-text); }
+    .hero .lead { font-size: clamp(16px, 2.5vh, 20px); line-height: 1.55; color: var(--muted); margin: 0 0 clamp(18px, 3.4vh, 32px); max-width: 520px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px;
+      border-radius: 999px; background: var(--surface); box-shadow: var(--shadow);
+      font-size: 13.5px; font-weight: 500; color: var(--ink); white-space: nowrap;
     }
-    .appbar-inner {
-      max-width: 1040px; margin: 0 auto; padding: 10px 16px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    .chip i { color: var(--accent-text); font-size: 13px; }
+    .hero-art { width: 100%; height: auto; max-height: calc(100dvh - var(--bar-h, 72px) - 60px); display: block; }
+
+    /* hero illustration colours follow the theme */
+    .art { font-family: inherit; overflow: visible; }
+    .art .surface { fill: var(--surface); }
+    .art .surface-2 { fill: var(--surface-2); }
+    .art .ink { fill: var(--ink); }
+    .art .muted { fill: var(--muted); }
+    .art .faint { fill: var(--faint); opacity: .35; }
+    .art .accent { fill: var(--accent); }
+    .art .accent-soft { fill: var(--accent-soft); }
+    .art .accent-text { fill: var(--accent-text); }
+    .art .pdf { fill: var(--pdf); }
+    .art .flow { stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 5 6; fill: none; stroke-linecap: round; animation: flow 1.2s linear infinite; }
+    .art .stroke-line { stroke: var(--line); stroke-width: 1; }
+    @keyframes flow { to { stroke-dashoffset: -11; } }
+    @media (prefers-reduced-motion: reduce) { .art .flow { animation: none; } }
+
+    /* step strip: one line */
+    .strip { display: flex; flex-wrap: nowrap; gap: 8px; align-items: center; margin-bottom: clamp(16px, 3vh, 30px); }
+    .strip .step-pill {
+      flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      height: 44px; padding: 0 14px; border-radius: 999px; background: var(--surface); box-shadow: var(--shadow);
+      font-size: 14px; font-weight: 600; white-space: nowrap;
     }
-    .brand {
-      display: inline-flex; align-items: center; gap: 10px;
-      font-weight: 700; font-size: 17px; color: var(--ink); text-decoration: none;
-    }
-    .brand i { color: var(--accent); font-size: 22px; }
-    main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 64px 16px 28px; text-align: center; }
-    h1 { font-size: 34px; margin: 0 0 10px; }
-    .tagline { color: var(--muted); font-size: 17px; margin: 0 0 30px; }
-    .launch {
-      display: inline-flex; align-items: center; gap: 10px;
-      background: var(--accent); color: #fff; text-decoration: none;
-      font-size: 15px; font-weight: 600;
-      padding: 9px 18px; border-radius: 8px; white-space: nowrap;
-      box-shadow: 0 1px 4px rgba(26,115,232,.3);
-    }
-    .launch:hover { filter: brightness(1.06); }
-    .note { color: var(--muted); font-size: 13px; margin: 0; }
-    .grid {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 14px; margin-top: 40px; text-align: left;
-    }
-    @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+    .strip .step-pill i { color: var(--accent-text); }
+    .strip .arrow { color: var(--faint); font-size: 13px; flex: none; }
+
+    /* cards: icon + title on one row, text from the left edge */
+    .cards { display: grid; gap: clamp(12px, 1.6vw, 20px); align-items: stretch; }
+    .cards.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cards.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .card {
-      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px;
+      background: var(--surface); border-radius: 18px; box-shadow: var(--shadow);
+      padding: clamp(18px, 3.2vh, 32px) clamp(18px, 1.8vw, 28px);
+      transition: background-color .2s ease; align-content: start;
     }
-    .card i { color: var(--accent); font-size: 20px; }
-    .card h3 { font-size: 15px; margin: 12px 0 6px; }
-    .card p { font-size: 13.5px; color: var(--muted); margin: 0; line-height: 1.5; }
-    footer {
-      text-align: center; color: var(--muted); font-size: 13px;
-      padding: 22px; border-top: 1px solid var(--line);
+    .card:hover { background: var(--card-hover); }
+    .card-head { display: flex; align-items: center; gap: 12px; }
+    .card-head h3 { margin: 0; font-size: clamp(17px, 2.5vh, 21px); line-height: 1.25; }
+    .card-head .num { display: block; font-size: 12px; font-weight: 700; color: var(--accent-text); letter-spacing: .06em; margin-bottom: 2px; }
+    .ic {
+      width: clamp(38px, 5.4vh, 46px); height: clamp(38px, 5.4vh, 46px); border-radius: 12px; flex: none;
+      display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); font-size: clamp(16px, 2.3vh, 19px);
     }
-    footer a { color: var(--accent); text-decoration: none; }
+    .card p { margin: clamp(10px, 1.6vh, 14px) 0 0; font-size: clamp(14.5px, 2.1vh, 16.5px); line-height: 1.55; color: var(--muted); }
+    .card code { font-size: .92em; background: var(--surface-2); padding: 1px 6px; border-radius: 6px; color: var(--ink); }
+
+    /* shelf mock-ups inside the feature cards */
+    .shelf { display: flex; flex-direction: column; }
+    .mock {
+      margin-top: clamp(14px, 2.4vh, 24px); flex: 1; min-height: clamp(150px, 26vh, 260px);
+      background: var(--bg); border-radius: 14px; padding: clamp(12px, 1.8vh, 18px);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .mock-search {
+      display: flex; align-items: center; gap: 10px; height: 38px; padding: 0 14px; border-radius: 999px;
+      background: var(--surface); box-shadow: var(--shadow); font-size: 13.5px; color: var(--ink);
+    }
+    .mock-search i { color: var(--muted); }
+    .mock-search .caret { width: 1.5px; height: 16px; background: var(--accent); margin-left: -6px; animation: blink 1.1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .mock-grid { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+    .mock-grid.codes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mtile { background: var(--surface); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; box-shadow: var(--shadow); }
+    .mtile.hit { box-shadow: 0 0 0 2px var(--accent), var(--shadow); }
+    .mtile .cover { flex: 1; min-height: 56px; position: relative; padding: 10px; display: flex; flex-direction: column; gap: 5px; background: var(--surface-2); }
+    .mtile .cover::before { content: ""; display: block; height: 8px; width: 60%; border-radius: 4px; background: var(--c, var(--accent)); opacity: .85; }
+    .mtile .cover span { display: block; height: 5px; border-radius: 3px; background: var(--faint); opacity: .35; }
+    .mtile .cover span:nth-child(2) { width: 80%; }
+    .mtile .cover span:nth-child(3) { width: 55%; }
+    .mtile .cover i { margin: auto; font-size: clamp(22px, 4.4vh, 40px); color: var(--c, var(--accent)); opacity: .55; }
+    .mtile .meta { padding: 8px 10px 10px; }
+    .mtile .t { font-size: 12.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mtile .s { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mtile .qr { flex: 1; min-height: 70px; background: #fff; display: grid; place-items: center; }
+    .mtile .qr svg { height: 78%; max-height: 120px; aspect-ratio: 1; }
+    .mtile .codeface { flex: 1; min-height: 70px; display: grid; place-items: center; background: var(--surface-2); font: 700 clamp(15px, 2.4vh, 20px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .05em; }
+
+    /* phones */
+    @media (min-width: 1700px) and (min-height: 950px) {
+      .group { max-width: 1440px; }
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: minmax(0, 1fr); }
+      .hero-art { max-height: none; }
+      .head-row { grid-template-columns: 1fr; gap: 10px; }
+      .head-row .sub { justify-self: start; }
+      .cards.three, .cards.two { grid-template-columns: minmax(0, 1fr); }
+      .strip { overflow-x: auto; scrollbar-width: none; margin-inline: -24px; padding: 4px 24px 10px; }
+      .strip::-webkit-scrollbar { display: none; }
+      .strip .step-pill { flex: 0 0 auto; }
+    }
+    @media (max-width: 480px) {
+      .group { padding-inline: 16px; }
+      h2 { font-size: 29px; }
+      .hero h1 { font-size: 44px; }
+      .strip { margin-inline: -16px; padding-inline: 16px; }
+      .mock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mock-grid .mtile:nth-child(3) { display: none; }
+    }
   </style>
 </head>
 <body>
-  <header class="appbar">
-    <div class="appbar-inner">
-      <a class="brand" href="./"><i class="fa-solid fa-box-archive"></i> Manual Vault</a>
-      <a class="launch" id="launch" href="https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec">
-        <i class="fa-brands fa-google"></i> Sign in
-      </a>
-    </div>
-  </header>
-  <main>
-    <h1>Manual Vault</h1>
-    <p class="tagline">Trash the paper. Scan the QR code, keep the PDF in your own Google Drive.</p>
-    <p class="note">Sign in with any Google account — your manuals are stored in a
-      "Manual Vault" folder in <em>your</em> Drive. The app can only touch files it created.</p>
+  <canvas id="particles" aria-hidden="true"></canvas>
 
-    <div class="grid">
-      <div class="card">
-        <i class="fa-solid fa-qrcode"></i>
-        <h3>Scan &amp; Save</h3>
-        <p>Point your camera at the QR code printed on the manual. The PDF opens instantly and is saved to Drive in the background.</p>
+  <div class="bar-wrap">
+    <header class="appbar">
+      <a class="brand" href="./"><span class="brand-mark"><i class="fa-solid fa-box-archive"></i></span>Manual Vault</a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#how">How it works</a>
+        <a href="#shelves">Features</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+      <span class="spacer"></span>
+      <button class="icon-btn theme-btn" type="button" aria-label="Switch theme">
+        <i class="fa-solid fa-moon i-moon"></i><i class="fa-solid fa-sun i-sun"></i>
+      </button>
+      <a class="cta" href="signin.html"><span class="long">Start your vault</span><span class="short">Start</span></a>
+    </header>
+  </div>
+
+  <main id="home">
+    <!-- hero -->
+    <section class="group" data-solo>
+      <div class="hero">
+        <div>
+          <span class="eyebrow"><i class="fa-solid fa-book-open"></i> For the drawer full of manuals</span>
+          <h1>Trash the paper.<br><em>Keep the manual.</em></h1>
+          <p class="lead">Scan the QR code printed on any product manual. Manual Vault saves the PDF to your own Google Drive,
+            and Claude names, sorts and tags it, so you can find it by the problem you have.</p>
+          <div class="chips">
+            <span class="chip"><i class="fa-brands fa-google-drive"></i> Your own Google Drive</span>
+            <span class="chip"><i class="fa-solid fa-shield-halved"></i> Only its own files</span>
+            <span class="chip"><i class="fa-solid fa-wand-magic-sparkles"></i> Indexed by Claude</span>
+          </div>
+        </div>
+
+        <svg class="hero-art art" viewBox="0 0 660 432" role="img"
+             aria-label="A paper manual's QR code is scanned with a phone; the PDF lands in a Manual Vault folder in Google Drive, Claude titles and tags it, and a search for 'dishwasher shows E24' finds it.">
+          <defs>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="160%">
+              <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#131a25" flood-opacity=".12"/>
+            </filter>
+          </defs>
+          <!-- paper manual -->
+          <g transform="translate(14 66) rotate(-4 90 120)" filter="url(#soft)">
+            <rect width="180" height="240" rx="12" class="surface"/>
+            <rect width="180" height="240" rx="12" fill="none" class="stroke-line"/>
+            <text x="18" y="30" font-size="10" font-weight="700" letter-spacing="1.6" class="muted">USER MANUAL</text>
+            <text x="18" y="52" font-size="16" font-weight="800" class="ink">Dishwasher</text>
+            <text x="18" y="70" font-size="12" font-weight="500" class="muted">Series 6 · SMS6</text>
+            <rect x="18" y="84" width="144" height="5" rx="2.5" class="faint"/>
+            <rect x="18" y="95" width="110" height="5" rx="2.5" class="faint"/>
+            <rect x="40" y="112" width="100" height="100" rx="8" fill="#ffffff"/>
+            <g class="qr-mods" data-x="46" data-y="118" data-s="88" data-seed="7"></g>
+            <text x="90" y="228" font-size="9.5" text-anchor="middle" class="muted">Scan for the full manual</text>
+          </g>
+
+          <path class="flow" d="M200 196 C214 196 222 196 236 196"/>
+          <path d="M232 190 L240 196 L232 202" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- phone scanning -->
+          <g transform="translate(250 22)">
+            <rect width="150" height="300" rx="26" fill="#1c2431"/>
+            <rect x="8" y="8" width="134" height="284" rx="19" fill="#0d131b"/>
+            <rect x="56" y="16" width="38" height="8" rx="4" fill="#1c2431"/>
+            <rect x="40" y="38" width="70" height="20" rx="10" fill="rgba(255,255,255,.1)"/>
+            <text x="75" y="52" font-size="9.5" font-weight="600" text-anchor="middle" fill="#cfd8e3">Scanning</text>
+            <rect x="37" y="84" width="76" height="76" rx="6" fill="#ffffff"/>
+            <g class="qr-mods" data-x="42" data-y="89" data-s="66" data-seed="7"></g>
+            <g fill="none" stroke="#4b90f5" stroke-width="3.5" stroke-linecap="round">
+              <path d="M25 92 V74 H43"/><path d="M107 74 H125 V92"/>
+              <path d="M125 152 V170 H107"/><path d="M43 170 H25 V152"/>
+            </g>
+            <rect x="16" y="208" width="118" height="68" rx="13" fill="#ffffff"/>
+            <circle cx="36" cy="231" r="10" fill="#e6f4ea"/>
+            <path d="M31.5 231 l3 3 l6 -6" fill="none" stroke="#188038" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="52" y="229" font-size="11" font-weight="700" fill="#131a25">Manual found</text>
+            <text x="52" y="243" font-size="9.5" fill="#5b6676">Opening the PDF</text>
+            <rect x="26" y="256" width="98" height="6" rx="3" fill="#e6effd"/>
+            <rect x="26" y="256" width="62" height="6" rx="3" fill="#1a73e8"/>
+          </g>
+
+          <path class="flow" d="M410 172 C424 172 432 172 444 172"/>
+          <path d="M440 166 L448 172 L440 178" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- the vault in Drive -->
+          <g transform="translate(456 34)" filter="url(#soft)">
+            <rect width="196" height="250" rx="16" class="surface"/>
+            <g transform="translate(16 16)">
+              <path d="M6 0 H14 L20 10 H12 Z" fill="#0f9d58"/>
+              <path d="M14 0 L20 10 L16 17 L10 7 Z" fill="#fbbc04"/>
+              <path d="M0 17 L4 10 H20 L16 17 Z" fill="#4285f4"/>
+            </g>
+            <text x="46" y="31" font-size="13" font-weight="700" class="ink">Manual Vault</text>
+            <g transform="translate(10 50)">
+              <rect width="176" height="58" rx="10" class="accent-soft"/>
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" class="pdf"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Bosch SMS6</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Dishwasher · error codes</text>
+            </g>
+            <g transform="translate(10 114)">
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface-2"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" fill="#8e63ce"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Dyson V15 Detect</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Cleaning · filters</text>
+            </g>
+            <g transform="translate(10 176)">
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface-2"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" fill="#e3a21a"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Sony WH-1000XM5</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Audio · pairing</text>
+            </g>
+          </g>
+
+          <!-- Claude indexing chip -->
+          <g transform="translate(456 300)">
+            <rect width="196" height="38" rx="19" class="accent-soft"/>
+            <path transform="translate(22 19)" d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z" class="accent-text"/>
+            <text x="40" y="23.5" font-size="11.5" font-weight="650" class="accent-text">Claude titled and tagged it</text>
+          </g>
+
+          <!-- search finds it by the problem -->
+          <g transform="translate(14 364)" filter="url(#soft)">
+            <rect width="638" height="54" rx="27" class="surface"/>
+            <circle cx="31" cy="25" r="7" fill="none" stroke="var(--muted)" stroke-width="2"/>
+            <path d="M36 30 L41 35" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+            <text x="54" y="32" font-size="15" font-weight="500" class="ink">dishwasher shows E24</text>
+            <rect x="420" y="9" width="208" height="36" rx="18" class="accent-soft"/>
+            <rect x="434" y="17" width="16" height="20" rx="3" class="surface"/>
+            <rect x="434" y="17" width="16" height="5" rx="2" class="pdf"/>
+            <text x="460" y="32" font-size="12" font-weight="650" class="accent-text">Bosch SMS6 dishwasher</text>
+          </g>
+        </svg>
       </div>
-      <div class="card">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
-        <h3>Claude indexing</h3>
-        <p>Bring your own Anthropic API key and each manual is read, titled, categorized and tagged automatically.</p>
+    </section>
+
+    <!-- how it works -->
+    <section class="group" id="how">
+      <span class="eyebrow">How it works</span>
+      <div class="head-row">
+        <h2>Scan once. Find it whenever<br>something breaks.</h2>
+        <p class="sub">No typing model numbers, no hunting a manufacturer's site. The QR code on the paper already points at the PDF.</p>
       </div>
-      <div class="card">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <h3>Search everything</h3>
-        <p>Find the right manual by brand, model, feature or problem — the search runs over the Claude-built index.</p>
+      <div class="strip" role="list">
+        <span class="step-pill" role="listitem"><i class="fa-solid fa-qrcode"></i> Scan the QR</span>
+        <i class="fa-solid fa-chevron-right arrow" aria-hidden="true"></i>
+        <span class="step-pill" role="listitem"><i class="fa-solid fa-file-pdf"></i> PDF opens</span>
+        <i class="fa-solid fa-chevron-right arrow" aria-hidden="true"></i>
+        <span class="step-pill" role="listitem"><i class="fa-brands fa-google-drive"></i> Saved to your Drive</span>
+        <i class="fa-solid fa-chevron-right arrow" aria-hidden="true"></i>
+        <span class="step-pill" role="listitem"><i class="fa-solid fa-wand-magic-sparkles"></i> Claude files it</span>
+        <i class="fa-solid fa-chevron-right arrow" aria-hidden="true"></i>
+        <span class="step-pill" role="listitem"><i class="fa-solid fa-magnifying-glass"></i> Search by problem</span>
       </div>
-      <div class="card">
-        <i class="fa-solid fa-lock"></i>
-        <h3>Scoped-down access</h3>
-        <p>Uses the narrow drive.file permission: the app cannot read, modify or delete anything else in your Google Drive.</p>
+      <div class="cards three">
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-camera"></i></span><h3><span class="num">01</span>Scan the QR code</h3></div>
+          <p>The camera opens with autofocus, tap to focus and zoom. The PDF opens the moment the code is read.</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-brands fa-google-drive"></i></span><h3><span class="num">02</span>It lands in your Drive</h3></div>
+          <p>Saved to a Manual Vault folder in your own Google Drive. Scan the same manual twice and it's spotted.</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-wand-magic-sparkles"></i></span><h3><span class="num">03</span>Claude files it</h3></div>
+          <p>Claude reads each PDF and gives it a title, brand, model, category and tags, then renames the file to match.</p>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- two shelves -->
+    <section class="group" id="shelves">
+      <span class="eyebrow">Features</span>
+      <div class="head-row">
+        <h2>Two shelves,<br>one search bar.</h2>
+        <p class="sub">Manuals and the setup codes stuck to your devices live side by side, searchable from the app bar.</p>
+      </div>
+      <div class="cards two">
+        <div class="card shelf">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-book"></i></span><h3>User manuals</h3></div>
+          <p>Every manual shows its cover. Search by brand, model, feature or the fault you're seeing, or filter by category.</p>
+          <div class="mock" aria-hidden="true">
+            <div class="mock-search"><i class="fa-solid fa-magnifying-glass"></i> dishwasher E24<span class="caret"></span></div>
+            <div class="mock-grid">
+              <div class="mtile hit"><div class="cover"><span></span><span></span><span></span><i class="fa-solid fa-utensils"></i></div><div class="meta"><div class="t">Bosch SMS6</div><div class="s">Dishwasher · error codes</div></div></div>
+              <div class="mtile"><div class="cover" style="--c:#8e63ce"><span></span><span></span><span></span><i class="fa-solid fa-sink"></i></div><div class="meta"><div class="t">Miele G 7000</div><div class="s">Kitchen · dishwasher</div></div></div>
+              <div class="mtile"><div class="cover" style="--c:#e3a21a"><span></span><span></span><span></span><i class="fa-solid fa-shirt"></i></div><div class="meta"><div class="t">Bosch Serie 4 dryer</div><div class="s">Laundry · drying</div></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card shelf">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-key"></i></span><h3>Setup codes</h3></div>
+          <p>Pairing stickers, Wi-Fi labels and app links are kept as codes, with a name Claude suggests when you scan them.</p>
+          <div class="mock" aria-hidden="true">
+            <div class="mock-search"><i class="fa-solid fa-magnifying-glass"></i> sensor</div>
+            <div class="mock-grid codes">
+              <div class="mtile"><div class="qr"><svg viewBox="0 0 100 100"><g class="qr-mods" data-x="4" data-y="4" data-s="92" data-seed="3"></g></svg></div><div class="meta"><div class="t">Living room sensor pairing</div><div class="s">QR code · Matter</div></div></div>
+              <div class="mtile"><div class="codeface">482-19-930</div><div class="meta"><div class="t">Front door lock</div><div class="s">Text code · HomeKit</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- privacy -->
+    <section class="group" id="privacy">
+      <div class="group-body">
+      <span class="eyebrow">Privacy</span>
+      <div class="head-row">
+        <h2>Your Drive. Your key.<br>Nothing in between.</h2>
+        <p class="sub">Sign in with any Google account. Your vault is a folder in your own Drive, and the app asks for as little as it can.</p>
+      </div>
+      <div class="cards three">
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-folder-closed"></i></span><h3>Only its own files</h3></div>
+          <p>Uses Google's narrow <code>drive.file</code> permission. The app can't open, change or delete anything else in your Drive.</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-key"></i></span><h3>Your own Claude key</h3></div>
+          <p>Kept in your Google user properties for this app only. Skip it and manuals still save, just without indexing.</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="ic"><i class="fa-solid fa-code"></i></span><h3>No server of ours</h3></div>
+          <p>It runs as you inside Google Apps Script, so nothing passes through us. The code is open source on GitHub.</p>
+        </div>
+      </div>
+      </div>
+      <footer class="footer">
+        <span>Manual Vault</span><span class="sep">·</span>
+        <span>Independent project</span>
+        <button class="info-btn" type="button" aria-label="About this project" aria-controls="glass-note" aria-expanded="false"><i class="fa-solid fa-circle-info"></i></button>
+        <span class="sep">·</span>
+        <a href="https://github.com/sankhacooray/manual-vault"><i class="fa-brands fa-github"></i> GitHub</a>
+        <span class="sep">·</span>
+        <a class="wide-only" href="signin.html">Sign in</a>
+      </footer>
+    </section>
   </main>
-  <footer>
-    <a href="https://github.com/sankhacooray/manual-vault">
-      <i class="fa-brands fa-github"></i> sankhacooray/manual-vault
-    </a>
-  </footer>
+
+  <div class="glass-note" id="glass-note" role="dialog" aria-label="About Manual Vault">
+    <div class="msg">
+      <strong>An independent, open-source project</strong>
+      <p>Manual Vault isn't affiliated with or endorsed by Google or Anthropic.</p>
+      <p>Manuals are downloaded from the link printed on them and saved to your own Drive. Claude indexing sends each PDF to Anthropic with your own API key.</p>
+    </div>
+  </div>
+
+  <script>
+    // Stylised QR modules for the illustrations: three finder squares plus a
+    // seeded scatter, so every copy of the same seed looks identical.
+    document.querySelectorAll('.qr-mods').forEach(function (g) {
+      var x0 = +g.dataset.x, y0 = +g.dataset.y, size = +g.dataset.s, seed = +g.dataset.seed || 1;
+      var n = 21, m = size / n, ns = 'http://www.w3.org/2000/svg', out = [];
+      var rnd = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      var finder = function (cx, cy) { return (cx < 8 && cy < 8) || (cx > n - 9 && cy < 8) || (cx < 8 && cy > n - 9); };
+      var rect = function (x, y, w, h, fill) {
+        var r = document.createElementNS(ns, 'rect');
+        r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+        r.setAttribute('fill', fill); out.push(r);
+      };
+      [[0, 0], [n - 7, 0], [0, n - 7]].forEach(function (f) {
+        rect(x0 + f[0] * m, y0 + f[1] * m, 7 * m, 7 * m, '#131a25');
+        rect(x0 + (f[0] + 1) * m, y0 + (f[1] + 1) * m, 5 * m, 5 * m, '#fff');
+        rect(x0 + (f[0] + 2) * m, y0 + (f[1] + 2) * m, 3 * m, 3 * m, '#131a25');
+      });
+      for (var cy = 0; cy < n; cy++) for (var cx = 0; cx < n; cx++) {
+        if (finder(cx, cy)) continue;
+        if (rnd() < .48) rect(x0 + cx * m, y0 + cy * m, m + .15, m + .15, '#131a25');
+      }
+      out.forEach(function (r) { g.appendChild(r); });
+    });
+  </script>
+  <script src="assets/site.js?v=2"></script>
 </body>
 </html>

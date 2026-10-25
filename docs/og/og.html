@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Manual Vault share image</title>
+<!-- Source for assets/og-image.png: render at 1200x630 with headless Chrome. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+  html, body { overflow: hidden; }
+  body { width: 1200px; height: 630px; display: grid; grid-template-columns: 430px 1fr; gap: 28px; align-items: center; padding: 0 48px 0 64px;
+    background: radial-gradient(900px 500px at 85% 0%, #e6effd, transparent 60%), #f4f6fa; }
+  .brand { font-size: 22px; margin-bottom: 34px; }
+  .brand-mark { width: 40px; height: 40px; border-radius: 12px; font-size: 18px; }
+  h1 { font-size: 60px; line-height: 1.02; letter-spacing: -.03em; margin: 0 0 22px; font-weight: 800; }
+  h1 em { font-style: normal; color: var(--accent-text); }
+  p { font-size: 21px; line-height: 1.5; color: var(--muted); margin: 0 0 28px; }
+  .url { font-size: 17px; font-weight: 600; color: var(--accent-text); }
+  .hero-art { width: 100%; height: auto; }
+  .art .flow { animation: none; }
+    /* hero illustration colours follow the theme */
+    .art { font-family: inherit; overflow: visible; }
+    .art .surface { fill: var(--surface); }
+    .art .surface-2 { fill: var(--surface-2); }
+    .art .ink { fill: var(--ink); }
+    .art .muted { fill: var(--muted); }
+    .art .faint { fill: var(--faint); opacity: .35; }
+    .art .accent { fill: var(--accent); }
+    .art .accent-soft { fill: var(--accent-soft); }
+    .art .accent-text { fill: var(--accent-text); }
+    .art .pdf { fill: var(--pdf); }
+    .art .flow { stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 5 6; fill: none; stroke-linecap: round; animation: flow 1.2s linear infinite; }
+    .art .stroke-line { stroke: var(--line); stroke-width: 1; }
+    @keyframes flow { to { stroke-dashoffset: -11; } }
+    @media (prefers-reduced-motion: reduce) { .art .flow { animation: none; } }
+
+</style>
+</head>
+<body>
+  <div>
+    <div class="brand"><span class="brand-mark"><i class="fa-solid fa-box-archive"></i></span>Manual Vault</div>
+    <h1>Trash the paper.<br><em>Keep the manual.</em></h1>
+    <p>Scan a manual's QR code. The PDF lands in your own Google Drive, titled and tagged by Claude.</p>
+    <div class="url">manuals.sankhacooray.com</div>
+  </div>
+  <svg class="hero-art art" viewBox="0 0 660 432" role="img"
+             aria-label="A paper manual's QR code is scanned with a phone; the PDF lands in a Manual Vault folder in Google Drive, Claude titles and tags it, and a search for 'dishwasher shows E24' finds it.">
+          <defs>
+            <filter id="soft" x="-20%" y="-20%" width="140%" height="160%">
+              <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#131a25" flood-opacity=".12"/>
+            </filter>
+          </defs>
+          <!-- paper manual -->
+          <g transform="translate(14 66) rotate(-4 90 120)" filter="url(#soft)">
+            <rect width="180" height="240" rx="12" class="surface"/>
+            <rect width="180" height="240" rx="12" fill="none" class="stroke-line"/>
+            <text x="18" y="30" font-size="10" font-weight="700" letter-spacing="1.6" class="muted">USER MANUAL</text>
+            <text x="18" y="52" font-size="16" font-weight="800" class="ink">Dishwasher</text>
+            <text x="18" y="70" font-size="12" font-weight="500" class="muted">Series 6 · SMS6</text>
+            <rect x="18" y="84" width="144" height="5" rx="2.5" class="faint"/>
+            <rect x="18" y="95" width="110" height="5" rx="2.5" class="faint"/>
+            <rect x="40" y="112" width="100" height="100" rx="8" fill="#ffffff"/>
+            <g class="qr-mods" data-x="46" data-y="118" data-s="88" data-seed="7"></g>
+            <text x="90" y="228" font-size="9.5" text-anchor="middle" class="muted">Scan for the full manual</text>
+          </g>
+
+          <path class="flow" d="M200 196 C214 196 222 196 236 196"/>
+          <path d="M232 190 L240 196 L232 202" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- phone scanning -->
+          <g transform="translate(250 22)">
+            <rect width="150" height="300" rx="26" fill="#1c2431"/>
+            <rect x="8" y="8" width="134" height="284" rx="19" fill="#0d131b"/>
+            <rect x="56" y="16" width="38" height="8" rx="4" fill="#1c2431"/>
+            <rect x="40" y="38" width="70" height="20" rx="10" fill="rgba(255,255,255,.1)"/>
+            <text x="75" y="52" font-size="9.5" font-weight="600" text-anchor="middle" fill="#cfd8e3">Scanning</text>
+            <rect x="37" y="84" width="76" height="76" rx="6" fill="#ffffff"/>
+            <g class="qr-mods" data-x="42" data-y="89" data-s="66" data-seed="7"></g>
+            <g fill="none" stroke="#4b90f5" stroke-width="3.5" stroke-linecap="round">
+              <path d="M25 92 V74 H43"/><path d="M107 74 H125 V92"/>
+              <path d="M125 152 V170 H107"/><path d="M43 170 H25 V152"/>
+            </g>
+            <rect x="16" y="208" width="118" height="68" rx="13" fill="#ffffff"/>
+            <circle cx="36" cy="231" r="10" fill="#e6f4ea"/>
+            <path d="M31.5 231 l3 3 l6 -6" fill="none" stroke="#188038" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="52" y="229" font-size="11" font-weight="700" fill="#131a25">Manual found</text>
+            <text x="52" y="243" font-size="9.5" fill="#5b6676">Opening the PDF</text>
+            <rect x="26" y="256" width="98" height="6" rx="3" fill="#e6effd"/>
+            <rect x="26" y="256" width="62" height="6" rx="3" fill="#1a73e8"/>
+          </g>
+
+          <path class="flow" d="M410 172 C424 172 432 172 444 172"/>
+          <path d="M440 166 L448 172 L440 178" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- the vault in Drive -->
+          <g transform="translate(456 34)" filter="url(#soft)">
+            <rect width="196" height="250" rx="16" class="surface"/>
+            <g transform="translate(16 16)">
+              <path d="M6 0 H14 L20 10 H12 Z" fill="#0f9d58"/>
+              <path d="M14 0 L20 10 L16 17 L10 7 Z" fill="#fbbc04"/>
+              <path d="M0 17 L4 10 H20 L16 17 Z" fill="#4285f4"/>
+            </g>
+            <text x="46" y="31" font-size="13" font-weight="700" class="ink">Manual Vault</text>
+            <g transform="translate(10 50)">
+              <rect width="176" height="58" rx="10" class="accent-soft"/>
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" class="pdf"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Bosch SMS6</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Dishwasher · error codes</text>
+            </g>
+            <g transform="translate(10 114)">
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface-2"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" fill="#8e63ce"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Dyson V15 Detect</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Cleaning · filters</text>
+            </g>
+            <g transform="translate(10 176)">
+              <rect x="10" y="9" width="30" height="40" rx="5" class="surface-2"/>
+              <rect x="10" y="9" width="30" height="9" rx="4" fill="#e3a21a"/>
+              <text x="50" y="26" font-size="11.5" font-weight="700" class="ink">Sony WH-1000XM5</text>
+              <text x="50" y="42" font-size="9.5" class="muted">Audio · pairing</text>
+            </g>
+          </g>
+
+          <!-- Claude indexing chip -->
+          <g transform="translate(456 300)">
+            <rect width="196" height="38" rx="19" class="accent-soft"/>
+            <path transform="translate(22 19)" d="M0 -8 L2 -2 L8 0 L2 2 L0 8 L-2 2 L-8 0 L-2 -2 Z" class="accent-text"/>
+            <text x="40" y="23.5" font-size="11.5" font-weight="650" class="accent-text">Claude titled and tagged it</text>
+          </g>
+
+          <!-- search finds it by the problem -->
+          <g transform="translate(14 364)" filter="url(#soft)">
+            <rect width="638" height="54" rx="27" class="surface"/>
+            <circle cx="31" cy="25" r="7" fill="none" stroke="var(--muted)" stroke-width="2"/>
+            <path d="M36 30 L41 35" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+            <text x="54" y="32" font-size="15" font-weight="500" class="ink">dishwasher shows E24</text>
+            <rect x="420" y="9" width="208" height="36" rx="18" class="accent-soft"/>
+            <rect x="434" y="17" width="16" height="20" rx="3" class="surface"/>
+            <rect x="434" y="17" width="16" height="5" rx="2" class="pdf"/>
+            <text x="460" y="32" font-size="12" font-weight="650" class="accent-text">Bosch SMS6 dishwasher</text>
+          </g>
+        </svg>
+  <script>
+    // Stylised QR modules for the illustrations: three finder squares plus a
+    // seeded scatter, so every copy of the same seed looks identical.
+    document.querySelectorAll('.qr-mods').forEach(function (g) {
+      var x0 = +g.dataset.x, y0 = +g.dataset.y, size = +g.dataset.s, seed = +g.dataset.seed || 1;
+      var n = 21, m = size / n, ns = 'http://www.w3.org/2000/svg', out = [];
+      var rnd = function () { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      var finder = function (cx, cy) { return (cx < 8 && cy < 8) || (cx > n - 9 && cy < 8) || (cx < 8 && cy > n - 9); };
+      var rect = function (x, y, w, h, fill) {
+        var r = document.createElementNS(ns, 'rect');
+        r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', h);
+        r.setAttribute('fill', fill); out.push(r);
+      };
+      [[0, 0], [n - 7, 0], [0, n - 7]].forEach(function (f) {
+        rect(x0 + f[0] * m, y0 + f[1] * m, 7 * m, 7 * m, '#131a25');
+        rect(x0 + (f[0] + 1) * m, y0 + (f[1] + 1) * m, 5 * m, 5 * m, '#fff');
+        rect(x0 + (f[0] + 2) * m, y0 + (f[1] + 2) * m, 3 * m, 3 * m, '#131a25');
+      });
+      for (var cy = 0; cy < n; cy++) for (var cx = 0; cx < n; cx++) {
+        if (finder(cx, cy)) continue;
+        if (rnd() < .48) rect(x0 + cx * m, y0 + cy * m, m + .15, m + .15, '#131a25');
+      }
+      out.forEach(function (r) { g.appendChild(r); });
+    });
+  </script>
+</body>
+</html>

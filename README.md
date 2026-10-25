@@ -2,7 +2,7 @@
 
 Trash the paper. Scan the QR code on a physical product manual, open the PDF instantly, and keep a digital copy in a **Manual Vault** folder in your own Google Drive — indexed and searchable with Claude.
 
-- **Live app:** https://manuals.sankhacooray.com (thin GitHub Pages wrapper that launches the Apps Script web app)
+- **Live app:** https://manuals.sankhacooray.com (GitHub Pages landing + sign-in page that launches the Apps Script web app)
 - **Platform:** Google Apps Script web app (`executeAs: USER_ACCESSING`) — every user signs in with their own Google account and the vault folder is created in *their* Drive.
 
 ## How it works
@@ -35,7 +35,11 @@ manual-vault/
 │   ├── fetch.js        # pull web-IDE edits back into src/
 │   └── package.json
 └── docs/               # GitHub Pages site (manuals.sankhacooray.com)
-    ├── index.html      # thin landing wrapper → launches the web app
+    ├── index.html      # marketing landing page
+    ├── signin.html     # sign-in panel → hands off to the Apps Script /exec URL
+    ├── scan.html       # top-level camera page (Apps Script iframes can't use the camera)
+    ├── assets/         # site.css / site.js (themes, app bar, paging), icons, og-image.png
+    ├── og/             # og.html → rendered to assets/og-image.png with headless Chrome
     └── CNAME
 ```
 

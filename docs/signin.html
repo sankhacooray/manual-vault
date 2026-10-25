@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sign in · Manual Vault</title>
+  <meta name="description" content="Sign in to Manual Vault with any Google account. Your manuals are saved to a Manual Vault folder in your own Google Drive, and the app can only touch files it created.">
+  <link rel="canonical" href="https://manuals.sankhacooray.com/signin.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Manual Vault">
+  <meta property="og:title" content="Sign in · Manual Vault">
+  <meta property="og:description" content="Sign in to Manual Vault with any Google account. Your manuals are saved to a Manual Vault folder in your own Google Drive, and the app can only touch files it created.">
+  <meta property="og:url" content="https://manuals.sankhacooray.com/signin.html">
+  <meta property="og:image" content="https://manuals.sankhacooray.com/assets/og-image.png?v=2">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Manual Vault: a paper manual's QR code is scanned with a phone and the PDF lands in a Manual Vault folder in Google Drive, titled and tagged by Claude.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://manuals.sankhacooray.com/assets/og-image.png?v=2">
+  <meta name="twitter:image:alt" content="Manual Vault: a paper manual's QR code is scanned with a phone and the PDF lands in a Manual Vault folder in Google Drive, titled and tagged by Claude.">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1a73e8">
+
+  <script>try { var t = localStorage.getItem('sc-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="assets/site.css?v=2">
+  <style>
+    body { display: flex; flex-direction: column; }
+    .bar-wrap { flex: none; }
+    /* single-panel form: centred below the app bar, scrolls from the top if taller */
+    .stage { flex: 1 0 auto; display: flex; flex-direction: column; padding: clamp(12px, 2.4vh, 24px) 16px 0; }
+    .panel {
+      margin: auto; width: min(440px, 100%);
+      background: var(--surface); border-radius: 22px; box-shadow: var(--shadow-lg);
+      padding: clamp(20px, 4vh, 40px) clamp(22px, 4vw, 36px);
+    }
+    .panel-mark {
+      width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center;
+      background: var(--accent); color: #fff; font-size: 24px; margin: 0 auto clamp(12px, 2.2vh, 18px);
+      box-shadow: 0 6px 20px rgba(26, 115, 232, .3);
+    }
+    .panel h1 { text-align: center; font-size: 24px; letter-spacing: -.02em; margin: 0 0 8px; }
+    .panel .lede { text-align: center; color: var(--muted); font-size: 15px; line-height: 1.55; margin: 0 0 clamp(16px, 3vh, 24px); }
+
+    /* Google sign-in button (Google's light / dark branding) */
+    .gbtn {
+      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 48px;
+      border-radius: 999px; border: 1px solid #747775; background: #fff; color: #1f1f1f;
+      font: 600 15px/1 "Inter", sans-serif; text-decoration: none; cursor: pointer;
+      transition: background-color .2s ease, box-shadow .2s ease;
+    }
+    .gbtn:hover { background: #f5f8fe; box-shadow: 0 1px 3px rgba(60, 64, 67, .25); }
+    .gbtn svg { width: 20px; height: 20px; flex: none; }
+    .gbtn .spin { display: none; color: #1a73e8; }
+    .gbtn.busy { pointer-events: none; }
+    .gbtn.busy svg { display: none; }
+    .gbtn.busy .spin { display: inline-block; }
+    :root[data-theme="dark"] .gbtn { background: #131314; border-color: #8e918f; color: #e3e3e3; }
+    :root[data-theme="dark"] .gbtn:hover { background: #1c1d1f; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) .gbtn { background: #131314; border-color: #8e918f; color: #e3e3e3; }
+      :root:not([data-theme="light"]) .gbtn:hover { background: #1c1d1f; }
+    }
+    .alt-account { display: block; text-align: center; margin-top: 12px; font-size: 13.5px; font-weight: 500; color: var(--accent-text); text-decoration: none; }
+    .alt-account:hover { text-decoration: underline; }
+
+    .asks { margin-top: clamp(18px, 3.2vh, 26px); background: var(--bg); border-radius: 16px; padding: 16px 16px 6px; }
+    .asks h2 { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+    .ask { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .ask .ic {
+      width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center;
+      background: var(--surface); color: var(--accent-text); font-size: 14px;
+    }
+    .ask b { display: block; font-size: 14px; font-weight: 600; }
+    .ask span { display: block; font-size: 12.5px; color: var(--muted); margin-top: 1px; }
+
+    details { margin-top: 14px; font-size: 13px; color: var(--muted); }
+    summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; font-weight: 500; }
+    summary::-webkit-details-marker { display: none; }
+    summary i { color: var(--faint); transition: transform .2s ease; }
+    details[open] summary i { transform: rotate(90deg); }
+    details p { margin: 8px 0 0 20px; line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <div class="bar-wrap">
+    <header class="appbar">
+      <a class="brand" href="./"><span class="brand-mark"><i class="fa-solid fa-box-archive"></i></span>Manual Vault</a>
+      <span class="spacer"></span>
+      <button class="icon-btn theme-btn" type="button" aria-label="Switch theme">
+        <i class="fa-solid fa-moon i-moon"></i><i class="fa-solid fa-sun i-sun"></i>
+      </button>
+    </header>
+  </div>
+
+  <main class="stage">
+    <section class="panel" aria-labelledby="signin-title">
+      <div class="panel-mark"><i class="fa-solid fa-box-archive"></i></div>
+      <h1 id="signin-title">Sign in to Manual Vault</h1>
+      <p class="lede">Use any Google account. Your vault is a folder in your own Google Drive.</p>
+
+      <a class="gbtn" id="gbtn" href="https://script.google.com/macros/s/AKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew/exec">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <i class="fa-solid fa-circle-notch fa-spin spin" aria-hidden="true"></i>
+        <span id="gbtn-label">Continue with Google</span>
+      </a>
+      <a class="alt-account" id="alt-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fscript.google.com%2Fmacros%2Fs%2FAKfycbyAbXPC3dW7xTE11NTwt5yH7jXktBevWeUWUdkqw94hp7Mw8zRyW8Cui0JJSfDNw54Aew%2Fexec">Use a different Google account</a>
+
+      <div class="asks">
+        <h2>Google will ask you to allow</h2>
+        <div class="ask"><span class="ic"><i class="fa-solid fa-folder-closed"></i></span>
+          <div><b>Files this app creates</b><span>Only the Manual Vault folder and what's in it</span></div></div>
+        <div class="ask"><span class="ic"><i class="fa-solid fa-globe"></i></span>
+          <div><b>Connect to external services</b><span>To download manuals and call Claude</span></div></div>
+        <div class="ask"><span class="ic"><i class="fa-solid fa-user"></i></span>
+          <div><b>Your name, email and photo</b><span>For the account menu in the app bar</span></div></div>
+      </div>
+
+      <details>
+        <summary><i class="fa-solid fa-chevron-right"></i> Google says it hasn't verified this app?</summary>
+        <p>That screen appears for apps that haven't been through Google's review. Choose <b>Advanced</b>, then
+          <b>Go to Manual Vault</b> to continue. The full source is on
+          <a href="https://github.com/sankhacooray/manual-vault">GitHub</a>.</p>
+      </details>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <a href="./">Manual Vault</a><span class="sep">·</span>
+    <span>Your files stay in your Drive</span><span class="sep">·</span>
+    <a href="https://github.com/sankhacooray/manual-vault"><i class="fa-brands fa-github"></i> GitHub</a>
+  </footer>
+
+  <script>
+    // Show progress while Google loads; reset if the user comes back (bfcache) or the tab regains focus.
+    var g = document.getElementById('gbtn');
+    var label = document.getElementById('gbtn-label');
+    function reset() { g.classList.remove('busy'); label.textContent = 'Continue with Google'; }
+    g.addEventListener('click', function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+      g.classList.add('busy');
+      label.textContent = 'Opening Google...';
+    });
+    window.addEventListener('pageshow', reset);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(reset, 1500); });
+  </script>
+  <script src="assets/site.js?v=2"></script>
+</body>
+</html>
